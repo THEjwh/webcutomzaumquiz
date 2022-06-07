@@ -7,8 +7,10 @@
     "preview": "vite preview --port 4173"
   },
   "dependencies": {
+    "axios": "^0.27.2",
     "colyseus.js": "^0.14.13",
     "vue": "^3.2.36",
+    "vue-axios": "^3.4.1",
     "vue-router": "^4.0.15"
   },
   "devDependencies": {
