@@ -15,6 +15,8 @@ module.exports = {
         // Where is your project?
         // It is relative to `vetur.config.js`.
         root: './zaum-front',
+        package: './package.json',
+
       }
     ]
   }
