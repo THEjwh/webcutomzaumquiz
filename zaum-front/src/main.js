@@ -10,6 +10,6 @@ const app = createApp(App)
 
 app.use(router)
 app.use(vueAxios, axios)
-app.config.globalProperties.$colyseus = Colyseus
+app.provide('$coly', Colyseus);
 
 app.mount('#app')
