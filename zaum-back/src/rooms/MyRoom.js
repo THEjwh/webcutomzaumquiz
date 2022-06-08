@@ -5,6 +5,7 @@ exports.MyRoom = class extends colyseus.Room {
 
   onCreate (options) {
     this.setState(new MyRoomState());
+    
 
     this.onMessage("type", (client, message) => {
       //

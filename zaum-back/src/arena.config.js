@@ -5,6 +5,7 @@ const { monitor } = require("@colyseus/monitor");
  * Import your Room files
  */
 const { MyRoom } = require("./rooms/MyRoom");
+const {ZaumRoom} = require('./rooms/ZaumRoom')
 
 module.exports = Arena({
     getId: () => "Your Colyseus App",
@@ -13,7 +14,7 @@ module.exports = Arena({
         /**
          * Define your room handlers:
          */
-        gameServer.define('my_room', MyRoom);
+        gameServer.define('zaum', ZaumRoom);
     },
 
     initializeExpress: (app) => {
