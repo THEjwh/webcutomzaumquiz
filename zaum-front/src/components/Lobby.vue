@@ -31,12 +31,12 @@ export default{
             </div>
             <div class="bg-emerald-600 row-span-full col-span-7">
                 <div class="w-full h-full flex flex-col">
-                    <div class="w-full bg-neutral-200 border-white border-2 grow text-xl ">
+                    <div class="w-full bg-blue-100 border-white border-2 grow text-xl ">
                         <p class="w-full break-all">
-                            유저1: 대충 겁나 긴 오질나게 수퍼 롱한 파워 텍스트로 자동줄바꿈 테스트를 할려합니다. 거 짜장 하나 배달 괜찮겠습니까?
+                            유저1: 줄바꿈ㅇ테스트용견본테스트 록타르오가르와 신비한 css 줄바꿈ㅇ테스트용견본테스트줄바꿈ㅇ테스트용견본테스트줄바꿈ㅇ테스트용견본테스트줄바꿈ㅇ테스트용견본테스트
                         </p>
-                        <p class="w-full break-all">
-                            유저2: 예아, 안될거뭐있노?
+                        <p class="w-full break-all bg-cyan-50">
+                            유저2: ㅁㄴㅇㅁㄴㅇㄴㅁㅇㅁㄴㅇㄴㅁㅇㅁㄴㅇ?
                         </p>
                     </div>
                     <textarea id="message" rows="1"
