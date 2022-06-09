@@ -14,11 +14,11 @@ export default {
 </script>
 
 <template>
-  <div class="asdf bg-slate-50">
+  <div class="w-scrren h-screen bg-slate-50">
     <Nav></Nav>
     <router-view></router-view>
   </div>
 </template>
 
-<style>
+<style scoped>
 </style>
