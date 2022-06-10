@@ -5,7 +5,7 @@ import Footer from './components/footer.vue';
 export default {
     setup() {
         const client = ref();
-        const room = ref();
+        const room = ref(undefined);
         provide("client", client);
         provide("room", room);
     },
