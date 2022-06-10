@@ -6,7 +6,30 @@ exports.ZaumRoom =  class extends colyseus.Room {
     onCreate (options) {
         this.setState(new ZaumState())
         this.state.NeedAdmin = true;
-        this.setPrivate(true)
+        //this.setPrivate(true)
+
+        this.onMessage('join_completed', (client, message) => {
+            this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 접속했습니다!")
+            this.broadcast("players", this.state.players)
+        })
+
+        this.onMessage('send_message', (client, message) => {
+            console.log(message)
+            console.log(this.state.IsPlaying)
+            if(this.state.IsPlaying){
+                
+            } else {
+                this.broadcast("chat_message", this.state.players.get(client.sessionId).nickname + ":" + message.msg)
+            }
+        })
+
+        this.onMessage('get_players', (client, message) => {
+            client.send("players", {players: this.state.players})
+        })
+
+        this.onMessage('start_game', (client, message) => {
+
+        })
      }
 
     // Authorize client based on provided options before WebSocket handshake is complete
@@ -28,14 +51,20 @@ exports.ZaumRoom =  class extends colyseus.Room {
             a.Isadmin = true
         }
         this.state.players.set(client.sessionId, a);
-        this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 접속했습니다!")
-        this.broadcast("client_number", this.state.players.size)
      }
 
     // When a client leaves the room
     onLeave (client, consented) {
         if(this.state.players.get(client.sessionId)){
+            let b = false
+            if(this.state.players.get(client.sessionId).Isadmin == true) b = true;
+
+            this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 나갔습니다!")
             this.state.players.delete(client.sessionId)
+            if(b && this.state.players.size >= 1){
+                this.state.players.entries().next().value.Isadmin = true;
+            }
+            this.broadcast("players", this.state.players)
         }
      }
 
