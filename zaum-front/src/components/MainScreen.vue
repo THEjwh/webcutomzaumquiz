@@ -1,6 +1,7 @@
 <script>
 import { Room } from 'colyseus.js';
-import { inject, onMounted, ref } from 'vue'
+import { inject, onBeforeMount, onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router';
 export default {
 	created() {
 		
@@ -17,22 +18,27 @@ export default {
     const serverlog = ref('')
     const players = ref(0)
     const roomid = ref('')
+    const router = useRouter()
 
-
+    onBeforeMount(() => {
+      console.log("mainscrrenvue BEFOREMOUNT")
+    })
+ 
 
     const goConnect = () => {
       console.log('trying...')
       client.value.joinOrCreate("zaum", {Nickname : nickname}).then(room => {
         abc.value = "방에 접속됨!"
-        room.onMessage('alarm', (message) => {
+        /* room.onMessage('alarm', (message) => {
           serverlog.value += message + '\n'
         })
 
         room.onMessage('client_number', (message) => {
           players.value = message
-        })
+        }) */
         Room.value = room
         console.log(Room.value)
+        router.push('/lobby')
       }).catch(e => {
         abc.value = "접속실패!"
       });
@@ -55,6 +61,10 @@ export default {
         abc.value = "접속실패!"
       });
     }
+
+    const test = () => {
+      router.push('/lobby')
+    }
     return {
       abc,
       nickname,
@@ -63,7 +73,8 @@ export default {
       goConnect,
       thisConnect,
       roomid,
-      toroomid
+      toroomid,
+      test
     }
     },
   methods() {
@@ -90,6 +101,7 @@ export default {
       <button @click="goConnect" class="bg-cyan-100 mx-auto p-3 rounded-lg text-xl font-extrabold">새방파기</button>
       <button @click="thisConnect" class="bg-cyan-100 mx-auto p-3 rounded-lg text-xl font-extrabold">방드가기</button>
     </div>
+    <button @click="test" class="bg-cyan-500 mx-auto p-3 rounded-lg text-xl font-extrabold">test</button>
   </div>
 </template>
 
