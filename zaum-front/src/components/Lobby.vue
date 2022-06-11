@@ -12,6 +12,8 @@ export default{
         const chats = ref(new Array())
         const chat = ref('')
         const chatsquare = ref(null)
+        const ImAdmin = ref(false)
+        const Seechat = ref(true)
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
@@ -21,13 +23,17 @@ export default{
                     inputMsg(message)
                 })
                 Room.value.onMessage('players', (message) => {
-                    console.log(message)
-                    console.log(typeof message)
                     users.value = message
-                    console.log(Object.entries(users.value))
+                    if(users.value[Room.value.sessionId].Isadmin == true) {
+                        ImAdmin.value = true
+                    } else ImAdmin.value = false
                 })
                 Room.value.onMessage('chat_message', (message) => {
                     inputMsg(message)
+                })
+
+                Room.value.onMessage('you_kicked', (message) => {
+                    exit('kick')
                 })
                 Room.value.send("join_completed")
             }
@@ -42,7 +48,10 @@ export default{
         const inputMsg = (msg) => {
             chats.value.push(msg)
             nextTick(() => {
-                chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
+                if(chatsquare.value.scrollHeight != undefined) {
+                    chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
+                }
+                
             })
         }
 
@@ -54,16 +63,49 @@ export default{
 
         const ttest = () => {
             if(users.value == undefined) return new Array()
+            console.log(users.value)
             return Object.entries(users.value)
         }
+
+        const exit = (reason = 'normal') => {
+            if(Room.value != undefined){
+                Room.value.leave()
+                Room.value = undefined
+            }
+            router.push({name:'home', query:{by:reason}})
+        }
+
+        const checker = (ck) => {
+            if(Room.value != undefined && Room.value.sessionId == ck) return true;
+            return false
+        }
+
+        const changeAdmin = (id) => {
+            Room.value.send("change_Admin", {sessionId:id  })
+        }
+
+        const kickPlayer = (id) => {
+            Room.value.send("kick_Player", {sessionId: id})
+        }
+
+        const getIsAdmin = () => ImAdmin.value
+        const getSeechat = () => Seechat.value
+        const changeSeechat = (b) => {Seechat.value = b;}
         
         return {
             users,
             chats,
             chat,
+            chatsquare,
             ttest,
             sendChat,
-            chatsquare,
+            exit,
+            checker,
+            changeAdmin,
+            kickPlayer,
+            getIsAdmin,
+            getSeechat,
+            changeSeechat,
         }
     },
     methods: {
@@ -77,16 +119,42 @@ export default{
         <div class="grid grid-rows-6 grid-cols-10 gap-0 w-full h-full">
             <div class="bg-zinc-100 row-span-full col-span-2">
                 <div class="w-full h-full flex flex-col flex-nowrap overflow-y-scroll">
-                    <div v-for="(item, index) in ttest()" class="text-xl w-full p-4"
-                        v-bind:class="{'bg-zinc-100': index % 2 == 1, 'bg-stone-200': index % 2 == 0}">
+                    <div v-for="(item, index) in ttest()" class="text-xl w-full p-4 basis-1/12 align-middle"
+                        v-bind:class="{'bg-zinc-100': index % 2 == 1, 'bg-stone-200': index % 2 == 0, 'font-bold': checker(item[0])}">
                         {{item[1].nickname}}
+                        <svg v-show="item[1].Isadmin" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline"
+                            fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                        </svg>
+                        <button @click="kickPlayer(item[0])" v-show="getIsAdmin() && !item[1].Isadmin">
+                            <svg  xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        </button>
+                        <button @click="changeAdmin(item[0])"  v-show="getIsAdmin() && !item[1].Isadmin">
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                            class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd"
+                                d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                                clip-rule="evenodd" />
+                        </svg>
+                        </button>
                     </div>
                 </div>
             </div>
-            <div class="bg-emerald-600 row-span-full col-span-7">
-                <div class="w-full h-full flex flex-col">
-                    <div ref='chatsquare' class="w-full basis-11/12 bg-blue-100 border-white border-2 grow text-xl scroll-smooth overflow-y-scroll">
-                        <p v-for="(item, index) in chats" class="w-full break-all" v-bind:class="{'bg-cyan-50' : index % 2 == 0, 'bg-cyan-100' : index % 2 == 1}">
+            <div class="row-span-full col-span-7">
+                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200">
+                test
+                </div>
+                <div v-show="getSeechat()" class="w-full h-full flex flex-col">
+                    <div ref='chatsquare'
+                        class="w-full basis-11/12 text-black bg-gray-100 grow text-xl scroll-smooth overflow-y-scroll">
+                        <p v-for="(item, index) in chats" class="w-full py-2 break-all"
+                            v-bind:class="{'bg-gray-50' : index % 2 == 0, 'bg-gray-100' : index % 2 == 1}">
                             {{item}}
                         </p>
                     </div>
@@ -97,14 +165,28 @@ export default{
             </div>
             <div class="bg-slate-200 row-span-3 col-span-1">
                 <div class="h-full flex flex-col">
-                    <button type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
+                    <button v-show="getIsAdmin()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 my-10 rounded-full basis-1/2 border-black border-4">start</button>
-                    <button @click="tes" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
+                    <button @click="exit()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 my-10 rounded-full basis-1/2 border-black border-4 ">exit</button>
                 </div>
             </div>
-            <div class="bg-slate-100 row-span-3 col-span-1">
-                
+            <div class="row-span-3 col-span-1" v-show="getIsAdmin()">
+                <button @click="changeSeechat(false)" id="optionmark" class="border-blue-400 border-r-4 border-y-4 my-4 block">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                </button>
+                <button id="chatmark" @click="changeSeechat(true)" class="border-blue-400 border-r-4 border-y-4 my-4 block">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                    </svg>
+                </button>
             </div>
         </div>
     </div>

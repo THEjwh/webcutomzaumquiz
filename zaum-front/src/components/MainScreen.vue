@@ -1,7 +1,7 @@
 <script>
 import { Room } from 'colyseus.js';
 import { inject, onBeforeMount, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 export default {
 	created() {
 		
@@ -19,9 +19,21 @@ export default {
     const players = ref(0)
     const roomid = ref('')
     const router = useRouter()
+    const rt = useRoute()
+    const kicked = ref('false')
 
     onBeforeMount(() => {
       console.log("mainscrrenvue BEFOREMOUNT")
+      if(Room.value != undefined){
+        Room.value.leave()
+        Room.value = undefined
+      }
+      if(rt.query.by != undefined){
+        if(rt.query.by == 'kick'){
+          kicked.value = true
+        }
+      }
+      console.log(kicked.value)
     })
  
 
@@ -63,17 +75,18 @@ export default {
     }
 
     const test = () => {
-      router.push('/lobby')
+      router.push({name: 'lobby'})
     }
     return {
       abc,
       nickname,
       serverlog,
       players,
-      goConnect,
-      thisConnect,
+      kicked,
       roomid,
       toroomid,
+      goConnect,
+      thisConnect,
       test
     }
     },
@@ -85,7 +98,7 @@ export default {
 
 <template>
 
-  <div class="container mx-auto border-2 m-4 bg-slate-300 rounded-lg my-10">
+  <div class="container mx-auto w-3/5 border-2 m-4 bg-slate-300 rounded-lg my-10">
     <p class="align-middle text-center font-sans font-semibold antialiased text-6xl text-black m-20">
       대충 사이트
     </p>
@@ -100,6 +113,9 @@ export default {
       <input v-model="toroomid" type="text" class="m-4 mx-auto rounded-lg bg-gray-50 text-sm p-4">
       <button @click="goConnect" class="bg-cyan-100 mx-auto p-3 rounded-lg text-xl font-extrabold">새방파기</button>
       <button @click="thisConnect" class="bg-cyan-100 mx-auto p-3 rounded-lg text-xl font-extrabold">방드가기</button>
+    </div>
+    <div v-if="kicked == true" class="p-4 mb-4 w-3/5 mx-auto text-md text-red-700 bg-red-100 rounded-lg text-center" role="alert">
+      <span class="font-bold">방에서 강퇴당하셨습니다!</span> 
     </div>
     <button @click="test" class="bg-cyan-500 mx-auto p-3 rounded-lg text-xl font-extrabold">test</button>
   </div>
