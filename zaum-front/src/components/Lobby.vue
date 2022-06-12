@@ -1,16 +1,13 @@
 <script>
 import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref } from 'vue'
 import { useRouter } from 'vue-router';
+import useClipboard from 'vue-clipboard3'
 
 export default{
     data(){
-        return{
-            mods: [
-            ],
-            selected_Mod : undefined
-        }
     },
     setup(props) {
+        const {toClipboard} = useClipboard()
         const col = inject('$coly');
         const client = inject('client');
         const Room = inject("room")
@@ -25,7 +22,15 @@ export default{
         const words = ref('')
         const Person = ref(1)
         const Rounds = ref(1)
-        const Times = ref(1)
+        const Times = ref(30)
+        const codetext = ref('방 코드 복사')
+        const gameMods = ref(undefined)
+        const selected_Mod = ref(0)
+        
+        const Isdesc = ref('false')
+        const Iscooltime = ref('false')
+        const Ishint = ref('false')
+        const Isinvade = ref('false')
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
@@ -33,6 +38,13 @@ export default{
                 Room.value.removeAllListeners()
                 Room.value.onMessage('alarm', (message) => {
                     inputMsg(message)
+                })
+                Room.value.onMessage('Mods', (message) => {
+                    console.log(message)
+                    gameMods.value = message
+                    selected_Mod.value = 0
+                    console.log('asdf')
+                    console.log(selected_Mod.value)
                 })
                 Room.value.onMessage('players', (message) => {
                     users.value = message
@@ -69,8 +81,10 @@ export default{
                 audio.play()
             }
             nextTick(() => {
-                if(chatsquare.value.scrollHeight != undefined) {
+                if(chatsquare.value) {
+                    if(chatsquare.value.scrollHeight) {
                     chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
+                }
                 }
                 
             })
@@ -109,6 +123,24 @@ export default{
             Room.value.send("kick_Player", { sessionId: id })
         }
 
+        const copyclick = async () => {
+            if(Room.value) {
+                try{
+                    await toClipboard(Room.value.sessionId)
+                    codetext.value = "복사됨!"
+                } catch (e) {
+
+                }
+            }
+        }
+        const copyout = () => {codetext.value = "방 코드 복사"}
+        const mod_desc = (a) => {
+            if(gameMods.value != undefined){
+                if(gameMods.value[a].description != undefined ? true : false) return gameMods.value[a].description
+                
+            }
+        }
+
         const getIsAdmin = () => ImAdmin.value
         const getSeechat = () => Seechat.value
         const changeSeechat = (b) => { Seechat.value = b; }
@@ -123,6 +155,12 @@ export default{
             Person,
             Rounds,
             Times,
+            codetext,
+            gameMods,
+            selected_Mod,
+            mod_desc,
+            copyclick,
+            copyout,
             ttest,
             sendChat,
             exit,
@@ -175,7 +213,7 @@ export default{
             </div>
 
             <div class="row-span-full col-span-7">
-                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200 grid grid-rows-2 grid-cols-2 gap-2 p-4">
+                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200 grid grid-rows-2 grid-cols-2 gap-1 p-4">
                     <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
                         <p class="p-2 text-2xl font-bold text-center">
                             단어장
@@ -189,20 +227,23 @@ export default{
                             placeholder="put words...">
                         </textarea>
                     </div>
-                    <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
+                    <div class="bg-gray-100 rounded-lg flex flex-col overflow-auto">
                         <p class="basis-1/3 text-center p-2 text-lg">
                             라운드 수 (1-20)
-                            <input v-model="Rounds" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                            <input v-model="Rounds"
+                                class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
                                 type="number" min="1" max="20">
                         </p>
                         <p class=" basis-1/3 text-center p-2 text-lg ">
                             시간제한 (30-120)
-                            <input v-model="Times" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                            <input v-model="Times"
+                                class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
                                 type="number" min="30" max="120">
                         </p>
                         <p class=" basis-1/3 text-center p-2 text-lg ">
                             게임 인원수 (1-20)
-                            <input v-model="Person" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                            <input v-model="Person"
+                                class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
                                 type="number" min="1" max="20">
                         </p>
                     </div>
@@ -218,17 +259,22 @@ export default{
                             게임 진행중 참여 허용
                             <input type="checkbox" class="mx-2">
                         </div>
+                        <div class="p-4 ">
+                            채팅 쿨타임
+                            <input type="checkbox" class="mx-2">
+                        </div>
                     </div>
                     <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
                         <div class="p-2 text-2xl font-bold text-center">
                             게임 모드
                         </div>
-                        <select class="bg-gray-50 border border-gray-300 shadow-md rounded-md">
-                            <option>레후</option>
-                            <option>aasdsdf</option>
+                        <select v-model="selected_Mod" class="bg-gray-50 border border-gray-300 shadow-md rounded-md">
+                            <option v-for="(item, index) in gameMods" :value="index">
+                                {{item.name}}
+                            </option>
                         </select>
                         <div class="bg-gray-300 mt-2 p-4 rounded-md grow text-xl font-semibold">
-                            대충모드설명
+                            {{mod_desc(selected_Mod)}}
                         </div>
                     </div>
                 </div>
@@ -245,7 +291,14 @@ export default{
                         placeholder="대충입력창">
                 </div>
             </div>
-            <div class=" row-span-3 col-span-1">
+            <div class="row-span-1 col-span-1">
+                 <button @mouseout="copyout" class="w-full h-1/2 p-4 bg-gradient-to-r text-sm bg-white border-2 border-black rounded-lg text-center hover:bg-black hover:text-white" @click="copyclick">
+                    <div>
+                        {{codetext}}
+                    </div>
+                    </button>
+            </div>
+            <div class=" row-span-2 col-span-1">
                 <div class="h-full flex flex-col">
                     <button v-show="getIsAdmin()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4">시작하기</button>

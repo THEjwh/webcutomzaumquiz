@@ -13,6 +13,7 @@ exports.ZaumRoom =  class extends colyseus.Room {
         this.onMessage('join_completed', (client, message) => {
             this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 접속했습니다!")
             this.broadcast("players", this.state.players)
+            client.send('Mods', this.state.Option.Rules)
         })
 
         this.onMessage('send_message', (client, message) => {
@@ -28,7 +29,7 @@ exports.ZaumRoom =  class extends colyseus.Room {
         })
 
         this.onMessage('start_game', (client, message) => {
-
+            
         })
 
         this.onMessage('change_Admin', (client, message) => {
@@ -63,6 +64,7 @@ exports.ZaumRoom =  class extends colyseus.Room {
         
         a.score = 0
         a.Isadmin = false
+        a.Iscorrect = false
         if(this.state.NeedAdmin) {
             this.state.NeedAdmin = false;
             a.Isadmin = true

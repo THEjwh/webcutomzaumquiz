@@ -9,7 +9,8 @@ class Player extends Schema {
 schema.defineTypes(Player, {
     nickname: "string",
     score: 'number',
-    Isadmin: 'boolean'
+    Isadmin: 'boolean',
+    Iscorrect: 'boolean',
 })
 
 class Zaums extends Schema {
@@ -47,7 +48,12 @@ class GameOptions extends Schema {
 schema.defineTypes(GameOptions, {
   MaxRound: 'number',
   MaxTime: 'number',
+  useHint: 'boolean',
+  useInvade : 'boolean',
+  useCooltime : 'boolean',
+  coolTime : 'number',
   Rules: [GameRules],
+  nowRule: 'number',
 })
 
 class ZaumState extends Schema {
@@ -56,6 +62,7 @@ class ZaumState extends Schema {
     this.players = new MapSchema();
     this.NeedAdmin = false;
     this.IsPlaying = false;
+    this.IsRound = false;
     this.Answers = new ArraySchema()
     this.Answers_index = 0
     this.NowRound = 0
@@ -63,7 +70,10 @@ class ZaumState extends Schema {
     this.Option = new GameOptions()
 
     //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...
-    this.Option.Rules.push(new GameRules(true,false, '선착순', '선착으로 들어온 1명만 점수를 얻습니다. 맞추고 바로 라운드가 끝납니다.'))
+    this.Option.Rules.push(new GameRules(false,false, '갯수경쟁', '맞춘 사람은 1점을 얻습니다.'))
+    this.Option.Rules.push(new GameRules(true,false, '승자독식', '1등만 점수를 1점 얻고 바로 라운드가 끝납니다.'))
+    this.Option.Rules.push(new GameRules(false,true, '스피드런', '맞춘 등수와 남은 시간에 따라 보정된 점수를 얻습니다.'))
+    
   }
 }
 
@@ -71,8 +81,10 @@ schema.defineTypes(ZaumState, {
     players: {map: Player},
     NeedAdmin: 'boolean',
     IsPlaying: 'boolean',
+    IsRound:'boolean',
     Answers: [Zaums],
     Answers_index: 'number', 
+    Isdesc : 'boolean',
     NowRound: 'number',
     NowTime: 'number',
     Option: GameOptions
