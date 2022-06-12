@@ -62,7 +62,7 @@ class ZaumState extends Schema {
     this.NowTime = 0
     this.Option = new GameOptions()
 
-    //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데 좀 귀찮다
+    //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...
     this.Option.Rules.push(new GameRules(true,false, '선착순', '선착으로 들어온 1명만 점수를 얻습니다. 맞추고 바로 라운드가 끝납니다.'))
   }
 }
