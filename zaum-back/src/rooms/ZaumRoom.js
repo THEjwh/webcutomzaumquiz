@@ -8,6 +8,8 @@ exports.ZaumRoom =  class extends colyseus.Room {
         this.state.NeedAdmin = true;
         //this.setPrivate(true)
 
+        
+
         this.onMessage('join_completed', (client, message) => {
             this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 접속했습니다!")
             this.broadcast("players", this.state.players)

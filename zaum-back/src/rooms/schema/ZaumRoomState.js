@@ -19,13 +19,35 @@ schema.defineTypes(Zaums, {
   Zaum: 'string'
 })
 
-class GameOptions extends Schema { 
-}
+class GameRules extends Schema {
 
+  constructor(fcfs = false, advscore = false, name = '', desc = '' ){
+    super();
+    this.FCFS = fcfs
+    this.score_Advenced = advscore
+    this.name = name
+    this.description = desc
+  }
+}
+schema.defineTypes(GameRules, {
+  FCFS: 'boolean',
+  score_Advenced: 'boolean',
+  name : 'string',
+  description: 'string',
+})
+
+class GameOptions extends Schema { 
+  constructor(){
+    super();
+    this.MaxRound = 1
+    this.MaxTime = 30
+    this.Rules = new ArraySchema()
+  }
+}
 schema.defineTypes(GameOptions, {
   MaxRound: 'number',
   MaxTime: 'number',
-  FCFS: 'boolean',
+  Rules: [GameRules],
 })
 
 class ZaumState extends Schema {
@@ -38,7 +60,10 @@ class ZaumState extends Schema {
     this.Answers_index = 0
     this.NowRound = 0
     this.NowTime = 0
-    this.Options = new GameOptions()
+    this.Option = new GameOptions()
+
+    //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데 좀 귀찮다
+    this.Option.Rules.push(new GameRules(true,false, '선착순', '선착으로 들어온 1명만 점수를 얻습니다. 맞추고 바로 라운드가 끝납니다.'))
   }
 }
 
@@ -50,7 +75,7 @@ schema.defineTypes(ZaumState, {
     Answers_index: 'number', 
     NowRound: 'number',
     NowTime: 'number',
-    Options: GameOptions
+    Option: GameOptions
 });
 
 exports.ZaumState = ZaumState;

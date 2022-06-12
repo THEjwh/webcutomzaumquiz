@@ -1,5 +1,7 @@
 const Arena = require("@colyseus/arena").default;
 const { monitor } = require("@colyseus/monitor");
+const express = require("express");
+const path = require('path')
 
 /**
  * Import your Room files
@@ -24,6 +26,8 @@ module.exports = Arena({
         app.get("/", (req, res) => {
             res.send("It's time to kick ass and chew bubblegum!");
         });
+
+        app.use('/res',express.static(path.join(__dirname, '../public')))
 
         /**
          * Bind @colyseus/monitor

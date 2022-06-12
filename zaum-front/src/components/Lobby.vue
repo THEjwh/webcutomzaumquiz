@@ -1,8 +1,16 @@
 <script>
 import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref } from 'vue'
 import { useRouter } from 'vue-router';
+
 export default{
-    
+    data(){
+        return{
+            mods: [
+                {name:'선착순 1명', description: '선착순 1명만 점수를 얻습니다.'}
+            ],
+            selected_Mod
+        }
+    },
     setup(props) {
         const col = inject('$coly');
         const client = inject('client');
@@ -14,6 +22,11 @@ export default{
         const chatsquare = ref(null)
         const ImAdmin = ref(false)
         const Seechat = ref(true)
+        const audio = new Audio('http://localhost:2567/res/sound/chat.mp3')
+        const words = ref('')
+        const Person = ref(1)
+        const Rounds = ref(1)
+        const Times = ref(1)
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
@@ -27,6 +40,10 @@ export default{
                     if(users.value[Room.value.sessionId].Isadmin == true) {
                         ImAdmin.value = true
                     } else ImAdmin.value = false
+
+                    if(ImAdmin.value == Seechat.value){
+                        Seechat.value = true
+                    }
                 })
                 Room.value.onMessage('chat_message', (message) => {
                     inputMsg(message)
@@ -47,6 +64,11 @@ export default{
 
         const inputMsg = (msg) => {
             chats.value.push(msg)
+            
+            if(audio){
+                audio.currentTime = 0
+                audio.play()
+            }
             nextTick(() => {
                 if(chatsquare.value.scrollHeight != undefined) {
                     chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
@@ -85,18 +107,23 @@ export default{
         }
 
         const kickPlayer = (id) => {
-            Room.value.send("kick_Player", {sessionId: id})
+            Room.value.send("kick_Player", { sessionId: id })
         }
 
         const getIsAdmin = () => ImAdmin.value
         const getSeechat = () => Seechat.value
-        const changeSeechat = (b) => {Seechat.value = b;}
-        
+        const changeSeechat = (b) => { Seechat.value = b; }
+        const cnad = () => ImAdmin.value = !ImAdmin.value
+
         return {
             users,
             chats,
             chat,
             chatsquare,
+            words,
+            Person,
+            Rounds,
+            Times,
             ttest,
             sendChat,
             exit,
@@ -106,6 +133,7 @@ export default{
             getIsAdmin,
             getSeechat,
             changeSeechat,
+            cnad,
         }
     },
     methods: {
@@ -128,27 +156,82 @@ export default{
                                 d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
                         <button @click="kickPlayer(item[0])" v-show="getIsAdmin() && !item[1].Isadmin">
-                            <svg  xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
-                                clip-rule="evenodd" />
-                        </svg>
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </button>
-                        <button @click="changeAdmin(item[0])"  v-show="getIsAdmin() && !item[1].Isadmin">
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                            class="h-5 w-5 inline" viewBox="0 0 20 20" fill="currentColor">
-                            <path fill-rule="evenodd"
-                                d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
-                                clip-rule="evenodd" />
-                        </svg>
+                        <button @click="changeAdmin(item[0])" v-show="getIsAdmin() && !item[1].Isadmin">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20"
+                                fill="currentColor">
+                                <path fill-rule="evenodd"
+                                    d="M3 6a3 3 0 013-3h10a1 1 0 01.8 1.6L14.25 8l2.55 3.4A1 1 0 0116 13H6a1 1 0 00-1 1v3a1 1 0 11-2 0V6z"
+                                    clip-rule="evenodd" />
+                            </svg>
                         </button>
                     </div>
                 </div>
             </div>
+
             <div class="row-span-full col-span-7">
-                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200">
-                test
+                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200 grid grid-rows-2 grid-cols-2 gap-2 p-4">
+                    <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
+                        <p class="p-2 text-2xl font-bold text-center">
+                            단어장
+                        </p>
+                        <p class="text-md font-sans text-center pb-2">
+                            설명이 포함됨
+                            <input type="checkbox" class="">
+                        </p>
+                        <textarea v-model="words" rows="1"
+                            class="w-full grow block bg-gray-50 rounded-lg border border-gray-300" maxlength="40000"
+                            placeholder="put words...">
+                        </textarea>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
+                        <p class="basis-1/3 text-center p-2 text-lg">
+                            라운드 수 (1-20)
+                            <input v-model="Rounds" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                                type="number" min="1" max="20">
+                        </p>
+                        <p class=" basis-1/3 text-center p-2 text-lg ">
+                            시간제한 (30-120)
+                            <input v-model="Times" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                                type="number" min="30" max="120">
+                        </p>
+                        <p class=" basis-1/3 text-center p-2 text-lg ">
+                            게임 인원수 (1-20)
+                            <input v-model="Person" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                                type="number" min="1" max="20">
+                        </p>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
+                        <div class="p-2 text-2xl font-bold text-center">
+                            옵션
+                        </div>
+                        <div class="p-4">
+                            힌트 켜기
+                            <input type="checkbox" class="mx-2">
+                        </div>
+                        <div class="p-4 ">
+                            게임 진행중 참여 허용
+                            <input type="checkbox" class="mx-2">
+                        </div>
+                    </div>
+                    <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
+                        <div class="p-2 text-2xl font-bold text-center">
+                            게임 모드
+                        </div>
+                        <select class="bg-gray-50 border border-gray-300 shadow-md rounded-md">
+                            <option>레후</option>
+                            <option>aasdsdf</option>
+                        </select>
+                        <div class="bg-gray-300 mt-2 p-4 rounded-md grow text-xl font-semibold">
+                            대충모드설명
+                        </div>
+                    </div>
                 </div>
                 <div v-show="getSeechat()" class="w-full h-full flex flex-col">
                     <div ref='chatsquare'
@@ -163,16 +246,17 @@ export default{
                         placeholder="대충입력창">
                 </div>
             </div>
-            <div class="bg-slate-200 row-span-3 col-span-1">
+            <div class=" row-span-3 col-span-1">
                 <div class="h-full flex flex-col">
                     <button v-show="getIsAdmin()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
-        focus:outline-none m-2 my-10 rounded-full basis-1/2 border-black border-4">start</button>
+        focus:outline-none m-2 rounded-full basis-1/4 border-black border-4">시작하기</button>
                     <button @click="exit()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
-        focus:outline-none m-2 my-10 rounded-full basis-1/2 border-black border-4 ">exit</button>
+        focus:outline-none m-2 rounded-full basis-1/4 border-black border-4 ">나가기</button>
                 </div>
             </div>
             <div class="row-span-3 col-span-1" v-show="getIsAdmin()">
-                <button @click="changeSeechat(false)" id="optionmark" class="border-blue-400 border-r-4 border-y-4 my-4 block">
+                <button id="optionmark" @click="changeSeechat(false)"
+                    class="border-black border-r-4 border-y-4 my-4 block">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -180,7 +264,8 @@ export default{
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                 </button>
-                <button id="chatmark" @click="changeSeechat(true)" class="border-blue-400 border-r-4 border-y-4 my-4 block">
+                <button id="chatmark" @click="changeSeechat(true)"
+                    class="border-black border-r-4 border-y-4 my-4 block">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round"
@@ -190,11 +275,11 @@ export default{
             </div>
         </div>
     </div>
-
+    <button @click="cnad()">테스트버튼</button>
 </template>
 
 <style scoped>
-.container {
+textarea{
+    resize: none;   
 }
-
 </style>
