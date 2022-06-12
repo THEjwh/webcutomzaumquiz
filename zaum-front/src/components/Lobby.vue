@@ -8,7 +8,7 @@ export default{
             mods: [
                 {name:'선착순 1명', description: '선착순 1명만 점수를 얻습니다.'}
             ],
-            selected_Mod
+            selected_Mod : undefined
         }
     },
     setup(props) {
