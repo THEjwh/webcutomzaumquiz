@@ -377,7 +377,7 @@ export default{
                     </div>
                     <input v-model="chat" @keydown.enter="sendChat" type="text" id="message"
                         class="self-end block basis-1/12 p-2.5 w-full text-2xl text-gray-900 resize-none bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="할말 (최대 100자)" maxlength="100">
+                        placeholder="할말 (최대 500자)" maxlength="500">
                 </div>
             </div>
             <div class="row-span-1 col-span-1 overflow-auto">
