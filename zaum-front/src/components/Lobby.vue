@@ -1,21 +1,18 @@
 <script>
-import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref } from 'vue'
+import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router';
+import useClipboard from 'vue-clipboard3'
+import { type } from '@colyseus/schema';
 
 export default{
     data(){
-        return{
-            mods: [
-                {name:'선착순 1명', description: '선착순 1명만 점수를 얻습니다.'}
-            ],
-            selected_Mod : undefined
-        }
     },
     setup(props) {
+        const {toClipboard} = useClipboard()
         const col = inject('$coly');
         const client = inject('client');
         const Room = inject("room")
-        const users = ref('undefined')
+        const users = ref(undefined)
         const router = useRouter()
         const chats = ref(new Array())
         const chat = ref('')
@@ -24,9 +21,18 @@ export default{
         const Seechat = ref(true)
         const audio = new Audio('http://localhost:2567/res/sound/chat.mp3')
         const words = ref('')
-        const Person = ref(1)
-        const Rounds = ref(1)
-        const Times = ref(1)
+        const Person = ref(10)
+        const Rounds = ref(2)
+        const Times = ref(60)
+        const codetext = ref('방 코드 복사')
+        const gameMods = ref(undefined)
+        const selected_Mod = ref(0)
+        
+        const Isdesc = ref(false)
+        const Iscooltime = ref(false)
+        const cooltime = ref(1)
+        const Ishint = ref(false)
+        const Isinvade = ref(true)
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
@@ -34,6 +40,12 @@ export default{
                 Room.value.removeAllListeners()
                 Room.value.onMessage('alarm', (message) => {
                     inputMsg(message)
+                })
+                Room.value.onMessage('Options', (message) => {
+                    console.log(message)
+                    gameMods.value = message.Rules
+                    selected_Mod.value = 0
+                    Person.value = message.Max
                 })
                 Room.value.onMessage('players', (message) => {
                     users.value = message
@@ -43,6 +55,7 @@ export default{
 
                     if(ImAdmin.value == Seechat.value){
                         Seechat.value = true
+                        Room.value.send('i_am_admin')
                     }
                 })
                 Room.value.onMessage('chat_message', (message) => {
@@ -70,8 +83,10 @@ export default{
                 audio.play()
             }
             nextTick(() => {
-                if(chatsquare.value.scrollHeight != undefined) {
+                if(chatsquare.value) {
+                    if(chatsquare.value.scrollHeight) {
                     chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
+                }
                 }
                 
             })
@@ -85,7 +100,6 @@ export default{
 
         const ttest = () => {
             if(users.value == undefined) return new Array()
-            console.log(users.value)
             return Object.entries(users.value)
         }
 
@@ -110,10 +124,101 @@ export default{
             Room.value.send("kick_Player", { sessionId: id })
         }
 
+        const copyclick = async () => {
+            if(Room.value) {
+                try{
+                    await toClipboard(Room.value.sessionId)
+                    codetext.value = "복사됨!"
+                } catch (e) {
+
+                }
+            }
+        }
+        const copyout = () => {codetext.value = "방 코드 복사"}
+        const mod_desc = (a) => {
+            if(gameMods.value != undefined){
+                if(gameMods.value[a].description != undefined ? true : false) return gameMods.value[a].description
+                
+            }
+        }
+
+        const cho_hangul = (str) => {
+            const cho = ["ㄱ", "ㄲ", "ㄴ", "ㄷ", "ㄸ", "ㄹ", "ㅁ", "ㅂ", "ㅃ", "ㅅ", "ㅆ", "ㅇ", "ㅈ", "ㅉ", "ㅊ", "ㅋ", "ㅌ", "ㅍ", "ㅎ"];
+            let result = "";
+            for (let i = 0; i < str.length; i++) {
+                let code = str.charCodeAt(i) - 44032;
+                if (code > -1 && code < 11172) result += cho[Math.floor(code / 588)];
+                else result += str.charAt(i);
+            }
+            return result;
+        }
+        
+        const game_start = () => {
+            const a = words.value.split(',')
+            const c = new Array()
+            if(Isdesc.value){
+                const ori = new Array()
+                a.forEach((ele) => {
+                    let t = ele.split('.')
+                    if(t[0].trim() != ''){
+                        c.push({origianl:t[0].trim(), zaum: cho_hangul(t[0]).trim(), desc: t[1].trim()})
+                    }
+                })
+            }else {
+                a.forEach(ele => {
+                    if(ele.trim() != ''){
+                        c.push({original: ele.trim(), zaum: cho_hangul(ele).trim() ,desc: null})
+                    }
+                });
+            }
+
+            if(c.length < 3){
+                return;
+            }
+
+            Room.value.send("start_game", {
+                MaxRound: Rounds.value,
+                MaxTime: Times.value,
+                useHint: Ishint.value,
+                useInvade: Isinvade.value,
+                useCooltime: Iscooltime.value,
+                coolTime: cooltime.value,
+                nowRule: selected_Mod.value,
+                useDesc : Isdesc.value,
+                words : c
+            })
+        }
+        
+        const sendmax = () => {
+            Room.value.send('change_max', Person.value)
+        }
+
         const getIsAdmin = () => ImAdmin.value
         const getSeechat = () => Seechat.value
         const changeSeechat = (b) => { Seechat.value = b; }
+        const getuserlength = () => {
+            if (users.value == undefined) return 1
+            return ttest().length
+        }
         const cnad = () => ImAdmin.value = !ImAdmin.value
+
+        watch(Rounds, (e, pre) => {
+            if(typeof e == 'string') {
+               Person.value = pre 
+            }
+        })
+        watch(Times, (e, pre) => {
+            if(typeof e == 'string') {
+               Person.value = pre 
+            }
+        })
+        watch(Person, (e, pre) => {
+            if(typeof e == 'string') {
+               Person.value = pre 
+            }
+        })
+
+        
 
         return {
             users,
@@ -124,16 +229,30 @@ export default{
             Person,
             Rounds,
             Times,
+            codetext,
+            gameMods,
+            selected_Mod,
+            Isdesc,
+            Iscooltime,
+            cooltime,
+            Ishint,
+            Isinvade,
+            mod_desc,
+            copyclick,
+            copyout,
             ttest,
             sendChat,
             exit,
             checker,
+            sendmax,
             changeAdmin,
             kickPlayer,
             getIsAdmin,
             getSeechat,
+            getuserlength,
             changeSeechat,
             cnad,
+            game_start,
         }
     },
     methods: {
@@ -176,60 +295,75 @@ export default{
             </div>
 
             <div class="row-span-full col-span-7">
-                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200 grid grid-rows-2 grid-cols-2 gap-2 p-4">
+                <div v-show="!getSeechat()" class="w-full h-full bg-gray-200 grid grid-rows-2 grid-cols-2 gap-1 p-4">
                     <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
                         <p class="p-2 text-2xl font-bold text-center">
                             단어장
                         </p>
-                        <p class="text-md font-sans text-center pb-2">
+                        <p class="text-md font-sans text-center pb-2 tt">
                             설명이 포함됨
-                            <input type="checkbox" class="">
+                            <span class="ttext">힌트로 단어의 설명이 나옵니다.</span>
+                        <input v-model="Isdesc" type="checkbox" class="">
                         </p>
                         <textarea v-model="words" rows="1"
                             class="w-full grow block bg-gray-50 rounded-lg border border-gray-300" maxlength="40000"
-                            placeholder="put words...">
+                            placeholder="단어1,단어2,단어3 ... OR 단어1.설명1,단어2.설명2,단어3.설명3 ... (최소 3단어, 최대 40000자)">
                         </textarea>
                     </div>
-                    <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
+                    <div class="bg-gray-100 rounded-lg flex flex-col overflow-auto">
                         <p class="basis-1/3 text-center p-2 text-lg">
                             라운드 수 (1-20)
-                            <input v-model="Rounds" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                            <input v-model="Rounds"
+                                class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
                                 type="number" min="1" max="20">
                         </p>
                         <p class=" basis-1/3 text-center p-2 text-lg ">
                             시간제한 (30-120)
-                            <input v-model="Times" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                            <input v-model="Times"
+                                class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
                                 type="number" min="30" max="120">
                         </p>
                         <p class=" basis-1/3 text-center p-2 text-lg ">
                             게임 인원수 (1-20)
-                            <input v-model="Person" class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
-                                type="number" min="1" max="20">
+                            <input v-model="Person"
+                                class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
+                                type="number" max="20" v-bind:min="getuserlength()" @change="sendmax()">
                         </p>
                     </div>
+
                     <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
                         <div class="p-2 text-2xl font-bold text-center">
                             옵션
                         </div>
                         <div class="p-4">
                             힌트 켜기
-                            <input type="checkbox" class="mx-2">
+                            <input v-model="Ishint" type="checkbox" class="mx-2">
                         </div>
                         <div class="p-4 ">
                             게임 진행중 참여 허용
-                            <input type="checkbox" class="mx-2">
+                            <input v-model="Isinvade" type="checkbox" class="mx-2">
+                        </div>
+                        <div class="p-4 ">
+                            채팅 쿨타임
+                            <input v-model="Iscooltime" type="checkbox" class="mx-2">
+                            <input type="range" v-model="cooltime" min="1" max="5">
+                            <span class="">
+                                {{cooltime}}
+                            </span>
                         </div>
                     </div>
+
                     <div class="bg-gray-100 rounded-lg p-4 flex flex-col overflow-auto">
                         <div class="p-2 text-2xl font-bold text-center">
                             게임 모드
                         </div>
-                        <select class="bg-gray-50 border border-gray-300 shadow-md rounded-md">
-                            <option>레후</option>
-                            <option>aasdsdf</option>
+                        <select v-model="selected_Mod" class="bg-gray-50 border border-gray-300 shadow-md rounded-md">
+                            <option v-for="(item, index) in gameMods" :value="index">
+                                {{item.name}}
+                            </option>
                         </select>
                         <div class="bg-gray-300 mt-2 p-4 rounded-md grow text-xl font-semibold">
-                            대충모드설명
+                            {{mod_desc(selected_Mod)}}
                         </div>
                     </div>
                 </div>
@@ -243,13 +377,20 @@ export default{
                     </div>
                     <input v-model="chat" @keydown.enter="sendChat" type="text" id="message"
                         class="self-end block basis-1/12 p-2.5 w-full text-2xl text-gray-900 resize-none bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="대충입력창">
+                        placeholder="할말 (최대 500자)" maxlength="500">
                 </div>
             </div>
-            <div class=" row-span-3 col-span-1">
-                <div class="h-full flex flex-col">
-                    <button v-show="getIsAdmin()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
-        focus:outline-none m-2 rounded-full basis-1/4 border-black border-4">시작하기</button>
+            <div class="row-span-1 col-span-1 overflow-auto">
+                <button @mouseout="copyout"
+                    class="w-full p-4 bg-gradient-to-r text-sm bg-white border-2 border-black rounded-lg text-center hover:bg-black hover:text-white"
+                    @click="copyclick">
+                    {{codetext}}
+                </button>
+            </div>
+            <div class=" row-span-2 col-span-1">
+                <div class="h-full flex flex-col overflow-auto">
+                    <button @click="game_start()" v-show="getIsAdmin()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
+        focus:outline-none m-2 rounded-full basis-1/4 border-black border-4">시작</button>
                     <button @click="exit()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4 ">나가기</button>
                 </div>
@@ -281,5 +422,25 @@ export default{
 <style scoped>
 textarea{
     resize: none;   
+}
+
+.tt {
+  display: inline-block;
+}
+
+.ttext {
+  display: none;
+  position: absolute;
+  max-width: 200px;
+  border: 1px solid;
+  border-radius: 5px;
+  padding: 5px;
+  font-size: 0.8em;
+  color: white;
+  background: rgb(75, 75, 255);
+}
+
+.tt:hover .ttext {
+  display: block;
 }
 </style>

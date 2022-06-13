@@ -39,7 +39,7 @@ export default {
 
     const goConnect = () => {
       console.log('trying...')
-      client.value.joinOrCreate("zaum", {Nickname : nickname}).then(room => {
+      client.value.joinOrCreate("zaum", {Nickname : nickname.value}).then(room => {
         abc.value = "방에 접속됨!"
         /* room.onMessage('alarm', (message) => {
           serverlog.value += message + '\n'
@@ -56,7 +56,7 @@ export default {
       });
     }
     const thisConnect = () => {
-      client.value.joinById(toroomid.value, {Nickname : nickname}).then(room => {
+      client.value.joinById(toroomid.value, {Nickname : nickname.value}).then(room => {
         abc.value = "방에 접속됨!"
         room.onMessage('alarm', (message) => {
           serverlog.value += message + '\n'
