@@ -21,9 +21,9 @@ export default{
         const Seechat = ref(true)
         const audio = new Audio('http://localhost:2567/res/sound/chat.mp3')
         const words = ref('')
-        const Person = ref(1)
-        const Rounds = ref(1)
-        const Times = ref(30)
+        const Person = ref(10)
+        const Rounds = ref(2)
+        const Times = ref(60)
         const codetext = ref('방 코드 복사')
         const gameMods = ref(undefined)
         const selected_Mod = ref(0)
@@ -41,12 +41,11 @@ export default{
                 Room.value.onMessage('alarm', (message) => {
                     inputMsg(message)
                 })
-                Room.value.onMessage('Mods', (message) => {
+                Room.value.onMessage('Options', (message) => {
                     console.log(message)
-                    gameMods.value = message
+                    gameMods.value = message.Rules
                     selected_Mod.value = 0
-                    console.log('asdf')
-                    console.log(selected_Mod.value)
+                    Person.value = message.Max
                 })
                 Room.value.onMessage('players', (message) => {
                     users.value = message
@@ -56,6 +55,7 @@ export default{
 
                     if(ImAdmin.value == Seechat.value){
                         Seechat.value = true
+                        Room.value.send('i_am_admin')
                     }
                 })
                 Room.value.onMessage('chat_message', (message) => {
@@ -100,7 +100,6 @@ export default{
 
         const ttest = () => {
             if(users.value == undefined) return new Array()
-            console.log(users.value)
             return Object.entries(users.value)
         }
 
@@ -161,11 +160,15 @@ export default{
                 const ori = new Array()
                 a.forEach((ele) => {
                     let t = ele.split('.')
-                    c.push({origianl:t[0].trim(), zaum: cho_hangul(t[0]).trim(), desc: t[1].trim()})
+                    if(t[0].trim() != ''){
+                        c.push({origianl:t[0].trim(), zaum: cho_hangul(t[0]).trim(), desc: t[1].trim()})
+                    }
                 })
             }else {
                 a.forEach(ele => {
-                    c.push({original: ele.trim(), zaum: cho_hangul(ele).trim() ,desc: null})
+                    if(ele.trim() != ''){
+                        c.push({original: ele.trim(), zaum: cho_hangul(ele).trim() ,desc: null})
+                    }
                 });
             }
 
@@ -185,10 +188,18 @@ export default{
                 words : c
             })
         }
+        
+        const sendmax = () => {
+            Room.value.send('change_max', Person.value)
+        }
 
         const getIsAdmin = () => ImAdmin.value
         const getSeechat = () => Seechat.value
         const changeSeechat = (b) => { Seechat.value = b; }
+        const getuserlength = () => {
+            if (users.value == undefined) return 1
+            return ttest().length
+        }
         const cnad = () => ImAdmin.value = !ImAdmin.value
 
         watch(Rounds, (e, pre) => {
@@ -206,6 +217,8 @@ export default{
                Person.value = pre 
             }
         })
+
+        
 
         return {
             users,
@@ -231,10 +244,12 @@ export default{
             sendChat,
             exit,
             checker,
+            sendmax,
             changeAdmin,
             kickPlayer,
             getIsAdmin,
             getSeechat,
+            getuserlength,
             changeSeechat,
             cnad,
             game_start,
@@ -312,7 +327,7 @@ export default{
                             게임 인원수 (1-20)
                             <input v-model="Person"
                                 class="block w-full mt-2 rounded-lg bg-gray-50 border border-gray-300 shadow-md"
-                                type="number" min="1" max="20">
+                                type="number" max="20" v-bind:min="getuserlength()" @change="sendmax()">
                         </p>
                     </div>
 

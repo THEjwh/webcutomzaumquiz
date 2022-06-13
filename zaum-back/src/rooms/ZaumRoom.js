@@ -6,17 +6,26 @@ exports.ZaumRoom =  class extends colyseus.Room {
     onCreate (options) {
         this.setState(new ZaumState())
         this.state.NeedAdmin = true;
+        this.maxClients = 10;
         //this.setPrivate(true)
 
         this.onMessage('join_completed', (client, message) => {
             this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 접속했습니다!")
             this.broadcast("players", this.state.players)
-            client.send('Mods', this.state.Option.Rules)
             if(this.state.IsPlaying){
 
             }else {
                 
             }
+        })
+
+        this.onMessage('i_am_admin', (client, message) => {
+            client.send('Options', {Rules: this.state.Option.Rules, Max: this.maxClients})
+        })
+
+        this.onMessage('change_max', (client, message) => {
+            this.maxClients = message
+            console.log(this.maxClients)
         })
 
         this.onMessage('join_game', (client, message) => {
