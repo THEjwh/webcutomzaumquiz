@@ -27,11 +27,11 @@ export default{
         const gameMods = ref(undefined)
         const selected_Mod = ref(0)
         
-        const Isdesc = ref('false')
-        const Iscooltime = ref('false')
+        const Isdesc = ref(false)
+        const Iscooltime = ref(false)
         const cooltime = ref(1)
-        const Ishint = ref('false')
-        const Isinvade = ref('false')
+        const Ishint = ref(false)
+        const Isinvade = ref(false)
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
@@ -154,38 +154,34 @@ export default{
         }
         
         const game_start = () => {
-            if(Isdesc){
+            let c = null
+            if(Isdesc.value){
                 const a = words.value.split(',')
                 const ori = new Array()
                 const za = new Array()
                 const de = new Array()
                 a.forEach((ele) => {
                     let t = ele.split('.')
-                    ori.push(t[0])
-                    de.push(t[1])
-                    za.push(cho_hangul(t[0]))
+                    ori.push(t[0].trim())
+                    de.push(t[1].trim())
+                    za.push(cho_hangul(t[0]).trim())
                 })
-                const tl = {original : ori, zaum : za, desc : de}
-                console.log(tl)
+                c = {original : ori, zaum : za, desc : de}
             }else {
-                const a = cho_hangul(words.value).split(',')
-                const b = words.value.split(',')
-                const c = {original : b, zaum : a }
-                console.log(c)
+                c = {original : words.value.split(',').map(e => e.trim()), zaum : cho_hangul(words.value).split(',').map(e => e.trim) }
             }
 
-
-            /* Room.value.send("game_start", {
+            Room.value.send("start_game", {
                 MaxRound: Rounds.value,
                 MaxTime: Times.value,
                 useHint: Ishint.value,
                 useInvade: Isinvade.value,
                 useCooltime: Iscooltime.value,
                 coolTime: cooltime.value,
-                ruleIndex: selected_Mod,
-                useDesc : Isdesc,
-                
-            }) */
+                ruleIndex: selected_Mod.value,
+                useDesc : Isdesc.value,
+                words : c
+            })
         }
 
         const getIsAdmin = () => ImAdmin.value

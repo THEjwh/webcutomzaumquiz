@@ -29,7 +29,7 @@ exports.ZaumRoom =  class extends colyseus.Room {
         })
 
         this.onMessage('start_game', (client, message) => {
-            
+            console.log(message)
         })
 
         this.onMessage('change_Admin', (client, message) => {
@@ -57,8 +57,8 @@ exports.ZaumRoom =  class extends colyseus.Room {
     onJoin (client, options) {
         console.log(client.sessionId, "joined!");
         let a = new Player();
-        if(options.Nickname._value != undefined && options.Nickname._value != ''){
-            a.nickname = options.Nickname._value
+        if(options.Nickname != undefined && options.Nickname != ''){
+            a.nickname = options.Nickname
         }
         else a.nickname = '무명_' + client.sessionId
         
