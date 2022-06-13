@@ -1,7 +1,8 @@
 <script>
-import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref } from 'vue'
+import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router';
 import useClipboard from 'vue-clipboard3'
+import { type } from '@colyseus/schema';
 
 export default{
     data(){
@@ -11,7 +12,7 @@ export default{
         const col = inject('$coly');
         const client = inject('client');
         const Room = inject("room")
-        const users = ref('undefined')
+        const users = ref(undefined)
         const router = useRouter()
         const chats = ref(new Array())
         const chat = ref('')
@@ -31,7 +32,7 @@ export default{
         const Iscooltime = ref(false)
         const cooltime = ref(1)
         const Ishint = ref(false)
-        const Isinvade = ref(false)
+        const Isinvade = ref(true)
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
@@ -154,21 +155,22 @@ export default{
         }
         
         const game_start = () => {
-            let c = null
+            const a = words.value.split(',')
+            const c = new Array()
             if(Isdesc.value){
-                const a = words.value.split(',')
                 const ori = new Array()
-                const za = new Array()
-                const de = new Array()
                 a.forEach((ele) => {
                     let t = ele.split('.')
-                    ori.push(t[0].trim())
-                    de.push(t[1].trim())
-                    za.push(cho_hangul(t[0]).trim())
+                    c.push({origianl:t[0].trim(), zaum: cho_hangul(t[0]).trim(), desc: t[1].trim()})
                 })
-                c = {original : ori, zaum : za, desc : de}
             }else {
-                c = {original : words.value.split(',').map(e => e.trim()), zaum : cho_hangul(words.value).split(',').map(e => e.trim()) }
+                a.forEach(ele => {
+                    c.push({original: ele.trim(), zaum: cho_hangul(ele).trim() ,desc: null})
+                });
+            }
+
+            if(c.length < 3){
+                return;
             }
 
             Room.value.send("start_game", {
@@ -178,7 +180,7 @@ export default{
                 useInvade: Isinvade.value,
                 useCooltime: Iscooltime.value,
                 coolTime: cooltime.value,
-                ruleIndex: selected_Mod.value,
+                nowRule: selected_Mod.value,
                 useDesc : Isdesc.value,
                 words : c
             })
@@ -188,6 +190,22 @@ export default{
         const getSeechat = () => Seechat.value
         const changeSeechat = (b) => { Seechat.value = b; }
         const cnad = () => ImAdmin.value = !ImAdmin.value
+
+        watch(Rounds, (e, pre) => {
+            if(typeof e == 'string') {
+               Person.value = pre 
+            }
+        })
+        watch(Times, (e, pre) => {
+            if(typeof e == 'string') {
+               Person.value = pre 
+            }
+        })
+        watch(Person, (e, pre) => {
+            if(typeof e == 'string') {
+               Person.value = pre 
+            }
+        })
 
         return {
             users,
@@ -274,7 +292,7 @@ export default{
                         </p>
                         <textarea v-model="words" rows="1"
                             class="w-full grow block bg-gray-50 rounded-lg border border-gray-300" maxlength="40000"
-                            placeholder="단어1,단어2,단어3 ... OR 단어1.설명1,단어2.설명2,단어3.설명3 ... ">
+                            placeholder="단어1,단어2,단어3 ... OR 단어1.설명1,단어2.설명2,단어3.설명3 ... (최소 3단어)">
                         </textarea>
                     </div>
                     <div class="bg-gray-100 rounded-lg flex flex-col overflow-auto">

@@ -1,5 +1,5 @@
 const colyseus = require('colyseus');
-const { ZaumState, Player } = require('./schema/ZaumRoomState');
+const { ZaumState, Player, Zaums } = require('./schema/ZaumRoomState');
 
 exports.ZaumRoom =  class extends colyseus.Room {
     // When room is initialized
@@ -8,12 +8,23 @@ exports.ZaumRoom =  class extends colyseus.Room {
         this.state.NeedAdmin = true;
         //this.setPrivate(true)
 
-        
-
         this.onMessage('join_completed', (client, message) => {
             this.broadcast("alarm", this.state.players.get(client.sessionId).nickname + "님이 접속했습니다!")
             this.broadcast("players", this.state.players)
             client.send('Mods', this.state.Option.Rules)
+            if(this.state.IsPlaying){
+
+            }else {
+                
+            }
+        })
+
+        this.onMessage('join_game', (client, message) => {
+
+        })
+
+        this.onMessage('join_invade', (client, message) => {
+
         })
 
         this.onMessage('send_message', (client, message) => {
@@ -29,7 +40,7 @@ exports.ZaumRoom =  class extends colyseus.Room {
         })
 
         this.onMessage('start_game', (client, message) => {
-            console.log(message)
+            this.state.Option.setter(message)
         })
 
         this.onMessage('change_Admin', (client, message) => {
@@ -56,20 +67,24 @@ exports.ZaumRoom =  class extends colyseus.Room {
     // When client successfully join the room
     onJoin (client, options) {
         console.log(client.sessionId, "joined!");
-        let a = new Player();
-        if(options.Nickname != undefined && options.Nickname != ''){
+
+        if (this.state.players.get(client.sessionId) == undefined) {
+          let a = new Player()
+          if (options.Nickname != undefined && options.Nickname != '') {
             a.nickname = options.Nickname
-        }
-        else a.nickname = '무명_' + client.sessionId
-        
-        a.score = 0
-        a.Isadmin = false
-        a.Iscorrect = false
-        if(this.state.NeedAdmin) {
-            this.state.NeedAdmin = false;
+          } else a.nickname = '무명_' + client.sessionId
+
+          a.score = 0
+          a.Isadmin = false
+          a.Iscorrect = false
+          a.Iscooltime = false
+          if (this.state.NeedAdmin) {
+            this.state.NeedAdmin = false
             a.Isadmin = true
+          }
+          this.state.players.set(client.sessionId, a)
         }
-        this.state.players.set(client.sessionId, a);
+        
      }
 
     // When a client leaves the room

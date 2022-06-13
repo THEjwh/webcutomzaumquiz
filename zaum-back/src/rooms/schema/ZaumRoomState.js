@@ -4,20 +4,27 @@ const MapSchema = schema.MapSchema;
 const ArraySchema = schema.ArraySchema;
 
 class Player extends Schema {
-
 }
 schema.defineTypes(Player, {
     nickname: "string",
     score: 'number',
     Isadmin: 'boolean',
     Iscorrect: 'boolean',
+    Iscooltime: 'boolean',
 })
 
 class Zaums extends Schema {
+  constructor(w){
+    super();
+    this.Original = w.original
+    this.Zaum = w.zaum
+    this.Desc = w.desc
+  }
 }
 schema.defineTypes(Zaums, {
   Original: 'string',
-  Zaum: 'string'
+  Zaum: 'string',
+  Desc: 'string',
 })
 
 class GameRules extends Schema {
@@ -40,20 +47,50 @@ schema.defineTypes(GameRules, {
 class GameOptions extends Schema { 
   constructor(){
     super();
-    this.MaxRound = 1
-    this.MaxTime = 30
     this.Rules = new ArraySchema()
+    this.Answers = new ArraySchema()
   }
+
+  setter(v){
+    this.MaxRound = v.MaxRound
+    this.MaxTime = v.MaxTime
+    this.useHint = v.useHint
+    this.useInvade = v.useInvade
+    this.useCooltime = v.useCooltime
+    this.coolTime = v.coolTime
+    this.nowRule = v.nowRule
+    this.Isdesc = v.useDesc
+    this.Answers = new ArraySchema()
+
+    for(let i = 0; i < v.words.length; i++){
+      this.Answers.push(new Zaums(v.words[i]))
+      console.log(this.Answers[i].Zaum)
+      
+    }
+    console.log(this.Answers.length)
+    //v.words.forEach(ele => {
+    //  this.Answers.push(new Zaums(ele.origianl, ele.zaum, ele.desc))
+   // });
+  }
+
 }
 schema.defineTypes(GameOptions, {
+  Rules: [GameRules],
+  nowRule: 'number',
+
   MaxRound: 'number',
   MaxTime: 'number',
+  NowRound: 'number',
+  NowTime: 'number',
+
   useHint: 'boolean',
   useInvade : 'boolean',
   useCooltime : 'boolean',
   coolTime : 'number',
-  Rules: [GameRules],
-  nowRule: 'number',
+
+  Answers: [Zaums],
+  Answers_index: 'number', 
+  Isdesc : 'boolean',
 })
 
 class ZaumState extends Schema {
@@ -63,10 +100,6 @@ class ZaumState extends Schema {
     this.NeedAdmin = false;
     this.IsPlaying = false;
     this.IsRound = false;
-    this.Answers = new ArraySchema()
-    this.Answers_index = 0
-    this.NowRound = 0
-    this.NowTime = 0
     this.Option = new GameOptions()
 
     //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...
@@ -82,13 +115,9 @@ schema.defineTypes(ZaumState, {
     NeedAdmin: 'boolean',
     IsPlaying: 'boolean',
     IsRound:'boolean',
-    Answers: [Zaums],
-    Answers_index: 'number', 
-    Isdesc : 'boolean',
-    NowRound: 'number',
-    NowTime: 'number',
     Option: GameOptions
 });
 
 exports.ZaumState = ZaumState;
 exports.Player = Player;
+exports.Zaums = Zaums;
