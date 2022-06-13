@@ -3,7 +3,5 @@ import MainScreen from '../components/MainScreen.vue'
 </script>
 
 <template>
-  <main>
-    <MainScreen/>
-  </main>
+  <MainScreen/>
 </template>
