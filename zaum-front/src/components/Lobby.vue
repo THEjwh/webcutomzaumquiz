@@ -168,7 +168,7 @@ export default{
                 })
                 c = {original : ori, zaum : za, desc : de}
             }else {
-                c = {original : words.value.split(',').map(e => e.trim()), zaum : cho_hangul(words.value).split(',').map(e => e.trim) }
+                c = {original : words.value.split(',').map(e => e.trim()), zaum : cho_hangul(words.value).split(',').map(e => e.trim()) }
             }
 
             Room.value.send("start_game", {
