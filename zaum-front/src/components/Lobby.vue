@@ -307,7 +307,7 @@ export default{
                         </p>
                         <textarea v-model="words" rows="1"
                             class="w-full grow block bg-gray-50 rounded-lg border border-gray-300" maxlength="40000"
-                            placeholder="단어1,단어2,단어3 ... OR 단어1.설명1,단어2.설명2,단어3.설명3 ... (최소 3단어)">
+                            placeholder="단어1,단어2,단어3 ... OR 단어1.설명1,단어2.설명2,단어3.설명3 ... (최소 3단어, 최대 40000자)">
                         </textarea>
                     </div>
                     <div class="bg-gray-100 rounded-lg flex flex-col overflow-auto">
@@ -377,7 +377,7 @@ export default{
                     </div>
                     <input v-model="chat" @keydown.enter="sendChat" type="text" id="message"
                         class="self-end block basis-1/12 p-2.5 w-full text-2xl text-gray-900 resize-none bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="할말">
+                        placeholder="할말 (최대 100자)" maxlength="100">
                 </div>
             </div>
             <div class="row-span-1 col-span-1 overflow-auto">
