@@ -41,16 +41,10 @@ export default {
       console.log('trying...')
       client.value.joinOrCreate("zaum", {Nickname : nickname.value}).then(room => {
         abc.value = "방에 접속됨!"
-        /* room.onMessage('alarm', (message) => {
-          serverlog.value += message + '\n'
-        })
-
-        room.onMessage('client_number', (message) => {
-          players.value = message
-        }) */
         Room.value = room
         console.log(Room.value)
-        router.push('/lobby')
+        //router.replace('/lobby')
+        router.replace({name:'game'})
       }).catch(e => {
         abc.value = "접속실패!"
       });
@@ -75,8 +69,13 @@ export default {
     }
 
     const test = () => {
-      router.push({name: 'lobby'})
+      router.replace({name: 'lobby'})
     }
+
+    const test2 = () => {
+      router.replace({name: 'game'})
+    }
+
     return {
       abc,
       nickname,
@@ -87,7 +86,8 @@ export default {
       toroomid,
       goConnect,
       thisConnect,
-      test
+      test,
+      test2
     }
     },
   methods() {
@@ -103,13 +103,13 @@ export default {
       대충 사이트
     </p>
     <div class=" mx-auto grid grid-cols-2 gap-10 m-20">
-      <div class="mx-auto text-2xl bg-slate-100 p-2 px-5 rounded-lg">
+      <div class="mx-auto text-2xl bg-slate-100 p-2 px-5 rounded-lg" >
         닉네임
       </div>
       <div class="mx-auto text-2xl bg-slate-100 p-2 px-5 rounded-lg">
         방 코드 입력
       </div>
-      <input v-model="nickname" type="text" class="m-4 mx-auto rounded-lg bg-gray-50 text-lg p-4" placeholder="swag">
+      <input v-model="nickname" type="text" class="m-4 mx-auto rounded-lg bg-gray-50 text-lg p-4" placeholder="최대 8자" maxlength="8">
       <input v-model="toroomid" type="text" class="m-4 mx-auto rounded-lg bg-gray-50 text-sm p-4">
       <button @click="goConnect" class="bg-cyan-100 mx-auto p-3 rounded-lg text-xl font-extrabold">새방파기</button>
       <button @click="thisConnect" class="bg-cyan-100 mx-auto p-3 rounded-lg text-xl font-extrabold">방드가기</button>
@@ -118,6 +118,7 @@ export default {
       <span class="font-bold">방에서 강퇴당하셨습니다!</span> 
     </div>
     <button @click="test" class="bg-cyan-500 mx-auto p-3 rounded-lg text-xl font-extrabold">test</button>
+    <button @click="test2" class="bg-cyan-500 mx-auto p-3 rounded-lg text-xl font-extrabold">test2</button>
   </div>
 </template>
 

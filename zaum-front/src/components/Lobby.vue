@@ -2,47 +2,54 @@
 import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref, watch } from 'vue'
 import { useRouter } from 'vue-router';
 import useClipboard from 'vue-clipboard3'
-import { type } from '@colyseus/schema';
 
 export default{
-    data(){
-    },
     setup(props) {
         const {toClipboard} = useClipboard()
         const col = inject('$coly');
         const client = inject('client');
         const Room = inject("room")
-        const users = ref(undefined)
         const router = useRouter()
+        
+        const users = ref(undefined)
+
         const chats = ref(new Array())
         const chat = ref('')
         const chatsquare = ref(null)
         const ImAdmin = ref(false)
         const Seechat = ref(true)
-        const audio = new Audio('http://localhost:2567/res/sound/chat.mp3')
         const words = ref('')
+
+        const audio = new Audio('http://localhost:2567/res/sound/chat.mp3')
+        
+
         const Person = ref(10)
         const Rounds = ref(2)
         const Times = ref(60)
-        const codetext = ref('방 코드 복사')
-        const gameMods = ref(undefined)
-        const selected_Mod = ref(0)
-        
         const Isdesc = ref(false)
         const Iscooltime = ref(false)
         const cooltime = ref(1)
         const Ishint = ref(false)
         const Isinvade = ref(true)
+        const gameMods = ref(undefined)
+        const selected_Mod = ref(0)
+
+        const started = ref(false)
+
+        const codetext = ref('방 코드 복사')
+        
+       
 
         onBeforeMount(() => {
             console.log("lobby BEFOREMOUNT")
             if(Room.value != undefined){
                 Room.value.removeAllListeners()
+
                 Room.value.onMessage('alarm', (message) => {
                     inputMsg(message)
                 })
                 Room.value.onMessage('Options', (message) => {
-                    console.log(message)
+                    //console.log(message)
                     gameMods.value = message.Rules
                     selected_Mod.value = 0
                     Person.value = message.Max
@@ -65,7 +72,19 @@ export default{
                 Room.value.onMessage('you_kicked', (message) => {
                     exit('kick')
                 })
+                
+                Room.value.onMessage('start_ok', (message) => {
+                    started.value = true
+                })
+
+                Room.value.onMessage('game_started', (msg) => {
+                    router.replace({name:'game'})
+                })
+                
                 Room.value.send("join_completed")
+            }
+            else{
+                //router.replace({name:'home'})
             }
         })
 
@@ -108,7 +127,7 @@ export default{
                 Room.value.leave()
                 Room.value = undefined
             }
-            router.push({name:'home', query:{by:reason}})
+            router.replace({name:'home', query:{by:reason}})
         }
 
         const checker = (ck) => {
@@ -204,18 +223,23 @@ export default{
 
         watch(Rounds, (e, pre) => {
             if(typeof e == 'string') {
-               Person.value = pre 
-            }
+               Rounds.value = pre 
+            } else if(e > 20) Rounds.value = 20
+            else if(e < 1) Rounds.value = 1
+
+
         })
         watch(Times, (e, pre) => {
             if(typeof e == 'string') {
-               Person.value = pre 
-            }
+               Times.value = pre 
+            } else if(e > 120) Times.value = 120
+            else if(e < 30) Times.value = 30
         })
         watch(Person, (e, pre) => {
             if(typeof e == 'string') {
                Person.value = pre 
-            }
+            } else if (e > 20) Person.value = 20
+            else if(e < getuserlength()) Person.value = getuserlength()
         })
 
         
@@ -237,6 +261,7 @@ export default{
             cooltime,
             Ishint,
             Isinvade,
+            started,
             mod_desc,
             copyclick,
             copyout,
@@ -274,7 +299,7 @@ export default{
                             <path stroke-linecap="round" stroke-linejoin="round"
                                 d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
                         </svg>
-                        <button @click="kickPlayer(item[0])" v-show="getIsAdmin() && !item[1].Isadmin">
+                        <button  @click="kickPlayer(item[0])" v-show="getIsAdmin() && !item[1].Isadmin & !started">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path fill-rule="evenodd"
@@ -282,7 +307,7 @@ export default{
                                     clip-rule="evenodd" />
                             </svg>
                         </button>
-                        <button @click="changeAdmin(item[0])" v-show="getIsAdmin() && !item[1].Isadmin">
+                        <button @click="changeAdmin(item[0])" v-show="getIsAdmin() && !item[1].Isadmin && !started">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" viewBox="0 0 20 20"
                                 fill="currentColor">
                                 <path fill-rule="evenodd"
@@ -377,7 +402,7 @@ export default{
                     </div>
                     <input v-model="chat" @keydown.enter="sendChat" type="text" id="message"
                         class="self-end block basis-1/12 p-2.5 w-full text-2xl text-gray-900 resize-none bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="할말 (최대 500자)" maxlength="500">
+                        placeholder="할말 (최대 300자)" maxlength="300">
                 </div>
             </div>
             <div class="row-span-1 col-span-1 overflow-auto">
@@ -389,7 +414,7 @@ export default{
             </div>
             <div class=" row-span-2 col-span-1">
                 <div class="h-full flex flex-col overflow-auto">
-                    <button @click="game_start()" v-show="getIsAdmin()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
+                    <button @click="game_start()" v-show="getIsAdmin() && !started" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4">시작</button>
                     <button @click="exit()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4 ">나가기</button>

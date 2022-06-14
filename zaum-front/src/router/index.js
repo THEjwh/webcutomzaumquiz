@@ -8,8 +8,8 @@ const routes = [
   {
     path: '/',
     name: 'home',
-    //component: HomeView,
-    component: gameView,
+    component: HomeView,
+    //component: gameView,
   },
   {
     path: '/home',
@@ -19,6 +19,11 @@ const routes = [
     path: '/lobby',
     name: 'lobby',
     component: LobbyView,
+  },
+  {
+    path: '/game',
+    name: 'game',
+    component: gameView,
   }
 ]
 

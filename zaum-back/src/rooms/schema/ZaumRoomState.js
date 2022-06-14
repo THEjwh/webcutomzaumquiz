@@ -80,8 +80,8 @@ schema.defineTypes(GameOptions, {
 
   MaxRound: 'number',
   MaxTime: 'number',
-  NowRound: 'number',
-  NowTime: 'number',
+  nowRound: 'number',
+  nowTime: 'number',
 
   useHint: 'boolean',
   useInvade : 'boolean',
@@ -100,6 +100,7 @@ class ZaumState extends Schema {
     this.NeedAdmin = false;
     this.IsPlaying = false;
     this.IsRound = false;
+    this.IsEnding = false;
     this.Option = new GameOptions()
 
     //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...
@@ -115,6 +116,7 @@ schema.defineTypes(ZaumState, {
     NeedAdmin: 'boolean',
     IsPlaying: 'boolean',
     IsRound:'boolean',
+    IsEnding: 'boolean',
     Option: GameOptions
 });
 
