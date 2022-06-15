@@ -49,6 +49,7 @@ class GameOptions extends Schema {
     super();
     this.Rules = new ArraySchema()
     this.Answers = new ArraySchema()
+    this.Hintarray = new ArraySchema()
   }
 
   setter(v){
@@ -90,6 +91,9 @@ schema.defineTypes(GameOptions, {
 
   Answers: [Zaums],
   Answers_index: 'number', 
+  Hintarray : ['number'],
+  Hintarray_l: 'number',
+  Hintarray_opend: 'number',
   Isdesc : 'boolean',
 })
 

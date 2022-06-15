@@ -75,6 +75,7 @@ export default{
                 
                 Room.value.onMessage('start_ok', (message) => {
                     started.value = true
+                    changeSeechat(true)
                 })
 
                 Room.value.onMessage('game_started', (msg) => {
@@ -213,6 +214,7 @@ export default{
         }
 
         const getIsAdmin = () => ImAdmin.value
+        
         const getSeechat = () => Seechat.value
         const changeSeechat = (b) => { Seechat.value = b; }
         const getuserlength = () => {
@@ -420,7 +422,7 @@ export default{
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4 ">나가기</button>
                 </div>
             </div>
-            <div class="row-span-3 col-span-1" v-show="getIsAdmin()">
+            <div class="row-span-3 col-span-1" v-show="getIsAdmin() && !started">
                 <button id="optionmark" @click="changeSeechat(false)"
                     class="border-black border-r-4 border-y-4 my-4 block">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none" viewBox="0 0 24 24"

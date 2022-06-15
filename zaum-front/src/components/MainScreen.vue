@@ -44,7 +44,7 @@ export default {
         Room.value = room
         console.log(Room.value)
         //router.replace('/lobby')
-        router.replace({name:'game'})
+        router.replace({name:'lobby'})
       }).catch(e => {
         abc.value = "접속실패!"
       });
