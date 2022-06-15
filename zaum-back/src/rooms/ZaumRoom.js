@@ -225,7 +225,7 @@ exports.ZaumRoom = class extends colyseus.Room {
             const l = this.state.Option.Answer.Zaum.length
             const ll = Math.floor(l / 2)
             this.state.Option.Hintarray_l = ll
-            console.log(ll)
+            console.log('ll:' + ll)
             for (let i = 0; i < ll;) {
                 let n = Math.floor(Math.random() * l)
                 if (this.state.Option.Hintarray.indexOf(n) == -1) {
@@ -290,6 +290,9 @@ exports.ZaumRoom = class extends colyseus.Room {
         if(this.state.Option.Hintarray_l == this.state.Option.Hintarray_opend) return
 
         console.log('sendhint 진입됨')
+        console.log(this.state.Option.Hintarray_l)
+        console.log(this.state.Option.Hintarray_opend)
+
 
         if (m) {
             for (let i =  this.state.Option.Hintarray_opend; i < this.state.Option.Hintarray_l; i++){
@@ -320,6 +323,7 @@ exports.ZaumRoom = class extends colyseus.Room {
             v.Iscooltime = false
         })
         this.state.Option.corrector = 0
+        this.state.Option.Hintarray.length = 0
         this.broadcast('round_ended', {
             answer:
             this.state.Option.Answer.Original,

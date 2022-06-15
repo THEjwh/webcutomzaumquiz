@@ -208,7 +208,7 @@ export default{
                 useHint: Ishint.value,
                 useInvade: Isinvade.value,
                 useCooltime: Iscooltime.value,
-                coolTime: cooltime.value,
+                coolTime: cooltime.value * 1,
                 nowRule: selected_Mod.value,
                 useDesc : Isdesc.value,
                 words : c
