@@ -1,6 +1,6 @@
 <script>
 import { inject, nextTick, onBeforeMount ,onMounted, onUpdated, ref, watch } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 import useClipboard from 'vue-clipboard3'
 
 export default{
@@ -10,6 +10,7 @@ export default{
         const client = inject('client');
         const Room = inject("room")
         const router = useRouter()
+        const route = useRoute()
         
         const users = ref(undefined)
 
@@ -79,10 +80,15 @@ export default{
                 })
 
                 Room.value.onMessage('game_started', (msg) => {
-                    router.replace({name:'game'})
+                    router.replace({name:'game', params:{by:'lo'}})
                 })
                 
-                Room.value.send("join_completed")
+                if(route.params.by == 'ho'){
+                    Room.value.send("join_completed", true)
+                }
+                else if(route.params.by == 'gm'){
+                    Room.value.send("join_completed", false)
+                }
             }
             else{
                 //router.replace({name:'home'})
@@ -418,7 +424,7 @@ export default{
                 <div class="h-full flex flex-col overflow-auto">
                     <button @click="game_start()" v-show="getIsAdmin() && !started" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4">시작</button>
-                    <button @click="exit()" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
+                    <button @click="exit()" v-show="!started" type="button" class="text-black bg-white hover:bg-black hover:text-white focus:ring-4 focus:ring-red-500 font-medium text-xl
         focus:outline-none m-2 rounded-full basis-1/4 border-black border-4 ">나가기</button>
                 </div>
             </div>

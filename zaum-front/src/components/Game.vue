@@ -1,6 +1,6 @@
 <script>
 import { inject, nextTick, onBeforeMount, onMounted, onUpdated, ref, watch } from 'vue'
-import { useRouter } from 'vue-router';
+import { useRouter, useRoute } from 'vue-router';
 export default {
 
     setup() {
@@ -8,9 +8,13 @@ export default {
         const client = inject('client');
         const Room = inject("room")
         const router = useRouter()
+        const route = useRoute()
 
-        
-        const words = ref('')
+        const chats = ref(new Array())
+        const chat = ref('')
+        const chatsquare = ref(null)
+
+        const words = ref('wait...')
         const hint = ref(new Array())
         const h_desc = ref('')
         const h_desc_use = ref(false)
@@ -28,6 +32,16 @@ export default {
         onBeforeMount(() => {
             if (Room.value != undefined) {
                 Room.value.removeAllListeners()
+                Room.value.onMessage('alarm', (msg) => {
+                    inputMsg(msg,'alarm')
+                })
+                Room.value.onMessage('alarm_s', (msg) => {
+                    inputMsg(msg,'alarm_s')
+                })
+                Room.value.onMessage('alarm_c', (msg) => {
+                    inputMsg(msg,'alarm_c')
+                    Room.value.send('get_players')
+                })
                 Room.value.onMessage('players', (message) => {
                     users.value = message
                     users_r.value = Object.entries(users.value).sort((a, b) => {
@@ -52,19 +66,63 @@ export default {
                     time.value = maxtime.value
                     round.value += 1
                     words.value = msg.quest
+                    hint.value.length = 0
                 })
                 Room.value.onMessage('clock_tick', (msg) => {
                     time.value -= 1
                 })
-                Room.value.send("join_game")
-
+                Room.value.onMessage('chat_message', (msg) => {
+                    inputMsg(msg,'msg')
+                })
+                Room.value.onMessage('chat_message_c', (msg) => {
+                    inputMsg(msg,'msg_c')
+                })
+                Room.value.onMessage('hint', (msg)=> {
+                    hint.value.push(msg.index + '번째 글자:' + msg.word)
+                })
+                Room.value.onMessage('correct', (msg) => {
+                    words.value = msg
+                })
+                Room.value.onMessage('round_ended', (msg) => {
+                    words.value = msg.answer
+                    inputMsg('라운드가 끝났습니다!','alarm')
+                    Room.value.send('get_players')
+                })
+                Room.value.onMessage('game_ended', (msg) => {
+                    inputMsg('게임이 종료되었습니다!','alarm')
+                })
+                Room.value.onMessage('goto_lobby', (msg) => {
+                    router.replace({ name: 'lobby', query:{r:true} })
+                })
+                if(route.params.by == 'lo'){
+                    Room.value.send("join_game")
+                }
 
             }
         })
 
 
+        const inputMsg = (msg, tag) => {
+            chats.value.push({msg : msg, tag : tag})
+            
+/*             if(audio){
+                audio.currentTime = 0
+                audio.play()
+            } */
+            nextTick(() => {
+                if(chatsquare.value) {
+                    if(chatsquare.value.scrollHeight) {
+                    chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
+                }
+                }
+                
+            })
+        }
+
         const getPlayer = () => {
+            console.log('겟플리리어호출')
             if(users.value == undefined) return new Array()
+            console.log(users.value)
             return Object.entries(users.value)
         }
 
@@ -84,6 +142,11 @@ export default {
             return false
         }
 
+        const sendchat = () => {
+            Room.value.send("send_message", {msg: chat.value})
+            chat.value = ""
+        }
+
         const exit = () => {
             if(Room.value != undefined){
                 Room.value.leave()
@@ -99,11 +162,14 @@ export default {
             h_desc_use,
             round,
             round_m,
-            
+            chats,
+            chat,
+            chatsquare,
 
             getPlayer,
             getRank,
             checker,
+            sendchat,
             exit
         }
     }
@@ -116,7 +182,7 @@ export default {
             <div class="bg-gray-100 row-span-full col-span-2 overflow-y-scroll">
                 <div class="w-full h-full flex flex-col">
                     <div v-for="(item, index) in getPlayer()" class="w-full grid gap-0 grid-rows-2 grid-cols-4" 
-                    v-bind:class="{'bg-zinc-100': index % 2 == 1, 'bg-stone-200': index % 2 == 0, 'font-bold': checker(item[0])}">
+                    v-bind:class="{'bg-green-500': item[1].Iscorrect == true ,'bg-zinc-100': item[1].Iscorrect == false && index % 2 == 1, 'bg-stone-200': item[1].Iscorrect == false && index % 2 == 0 , 'font-bold': checker(item[0])}">
                         <div class="row-span-2 col-span-1 mx-auto my-auto">
                             <div class="text-2xl font-bold text-black p-1 text-center rounded-2xl">
                                 {{'#'+ getRank(item[0])}}
@@ -145,11 +211,15 @@ export default {
                 </div>
                 <div class="w-full h-5/6 flex flex-col">
                     <div ref="chatsquare"
-                        class="w-full basis-11/12 text-black bg-gray-100 grow text-xl scroll-smooth overflow-y-scroll">
+                        class="w-full basis-11/12 bg-gray-100 grow text-xl scroll-smooth overflow-y-scroll">
+                        <p v-for="(item, index) in chats" class="w-full py-2 break-all"
+                            v-bind:class="{'bg-gray-50' : index % 2 == 0, 'bg-gray-100' : index % 2 == 1, 'italic' : item.tag == 'alarm_c', 'text-green-300' : item.tag == 'msg_c', 'text-black' : item.tag == 'msg', 'text-gray-500' : item.tag == 'alarm_s', 'text-yellow-400': item.tag == 'alarm', 'font-semibold': item.tag == 'alarm' || 'alarm_c' || 'alarm_s', 'font-medium' : item.tag == 'msg' || 'msg_c'}">
+                            {{item.msg}}
+                        </p>
                     </div>
-                    <input type="text" id="message"
+                    <input type="text" id="message" v-model="chat" @keydown.enter="sendchat"
                         class="self-end block basis-1/12 p-2.5 w-full text-2xl text-gray-900 resize-none bg-gray-50 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                        placeholder="할말 (최대 500자)" maxlength="500" />
+                        placeholder="할말 (최대 300자)" maxlength="300" />
                 </div>
             </div>
             <div class="row-span-1 col-span-2 flex flex-col items-center overflow-y-auto ">

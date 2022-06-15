@@ -16,12 +16,12 @@ const routes = [
     redirect: {name:'home'}
   },
   {
-    path: '/lobby',
+    path: '/lobby/:by',
     name: 'lobby',
     component: LobbyView,
   },
   {
-    path: '/game',
+    path: '/game/:by',
     name: 'game',
     component: gameView,
   }

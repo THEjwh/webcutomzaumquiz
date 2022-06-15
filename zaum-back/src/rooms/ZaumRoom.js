@@ -11,10 +11,12 @@ exports.ZaumRoom = class extends colyseus.Room {
         //this.setPrivate(true)
 
         this.onMessage('join_completed', (client, message) => {
-            this.broadcast(
-                'alarm',
-                this.state.players.get(client.sessionId).nickname + '님이 접속했습니다!'
-            )
+            if(message){
+                this.broadcast(
+                    'alarm',
+                    this.state.players.get(client.sessionId).nickname + '님이 접속했습니다!'
+                )
+            }
             this.broadcast('players', this.state.players)
         })
 
@@ -57,6 +59,37 @@ exports.ZaumRoom = class extends colyseus.Room {
 
         this.onMessage('send_message', (client, message) => {
             if (this.state.IsPlaying && this.state.IsRound) {
+                if(this.state.players.get(client.sessionId).Iscorrect){
+                    this.broadcast('chat_message_c', this.state.players.get(client.sessionId).nickname + ': ' + message.msg)
+                } else if(this.state.players.get(client.sessionId).Iscooltime) {
+                    client.send('alarm_s', '아직 쿨타임 입니다.')
+                } else {
+                    if(this.state.Option.Answer.Original == message.msg){
+                        this.state.players.get(client.sessionId).Iscorrect = true
+                        this.state.Option.corrector += 1
+                        if(this.state.Option.Rule.score_adv){
+                            this.state.players.get(client.sessionId).score += 100 + (100 - Math.floor(100 * this.state.Option.corrector / this.state.players.size )) + (100 - Math.floor(100 * this.state.Option.nowTime / this.state.Option.MaxTime))
+                        } else {
+                            this.state.players.get(client.sessionId).score += 1
+                        }
+                        client.send('correct', this.state.Option.Answer.Original)
+                        this.broadcast('alarm_c', this.state.players.get(client.sessionId).nickname + '님이 정답을 맞췄습니다!')
+                        if(this.state.Option.Rule.FCFS){
+                            this.roundend()
+                        }
+                    } else {
+                        this.broadcast(
+                            'chat_message',
+                            this.state.players.get(client.sessionId).nickname + ': ' + message.msg
+                        )
+                        if(this.state.Option.useCooltime){
+                            this.state.players.get(client.sessionId).Iscooltime = true
+                            this.clock.setInterval(() => {
+                                this.state.players.get(client.sessionId).Iscooltime = false
+                            }, this.state.Option.coolTime * 1000)
+                        }
+                    }   
+                }
             } else {
                 this.broadcast(
                     'chat_message',
@@ -66,7 +99,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         })
 
         this.onMessage('get_players', (client, message) => {
-            client.send('players', { players: this.state.players })
+            client.send('players', this.state.players)
         })
 
         this.onMessage('start_game', (client, message) => {
@@ -179,14 +212,17 @@ exports.ZaumRoom = class extends colyseus.Room {
         }
         console.log('다음 라운드 준비중')
         this.broadcast('alarm', '곧 다음 라운드가 시작됩니다!')
+
         this.state.Option.Answers_index = Math.floor(
             Math.random() * this.state.Option.Answers.length
         )
 
+        this.state.Option.Answer = this.state.Option.Answers[this.state.Option.Answers_index]
+
         if (this.state.Option.useHint) {
             console.log('힌트 켜짐')
             this.state.Option.Hintarray_opend = 0
-            const l = this.state.Option.Answers[this.state.Option.Answers_index].Zaum.length
+            const l = this.state.Option.Answer.Zaum.length
             const ll = Math.floor(l / 2)
             this.state.Option.Hintarray_l = ll
             console.log(ll)
@@ -212,7 +248,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         this.state.Option.nowRound += 1
         this.state.IsRound = true
         this.broadcast('round_start', {
-            quest: this.state.Option.Answers[this.state.Option.Answers_index].Zaum,
+            quest: this.state.Option.Answer.Zaum,
         })
         this.clock.setInterval(() => {
             this.gamecount(this)
@@ -220,7 +256,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         console.log('시간: ' + this.state.Option.MaxTime)
         console.log(
             '현재문제: ' +
-            this.state.Option.Answers[this.state.Option.Answers_index].Zaum
+            this.state.Option.Answer.Zaum
         )
     }
 
@@ -257,7 +293,7 @@ exports.ZaumRoom = class extends colyseus.Room {
 
         if (m) {
             for (let i =  this.state.Option.Hintarray_opend; i < this.state.Option.Hintarray_l; i++){
-                this.broadcast('hint', {index : this.state.Option.Hintarray[this.state.Option.Hintarray_opend] + 1, word : this.state.Option.Answers[this.state.Option.Answers_index].Original[this.state.Option.Hintarray[this.state.Option.Hintarray_opend]]})
+                this.broadcast('hint', {index : this.state.Option.Hintarray[this.state.Option.Hintarray_opend] + 1, word : this.state.Option.Answer.Original[this.state.Option.Hintarray[this.state.Option.Hintarray_opend]]})
                 this.state.Option.Hintarray_opend += 1   
             }
             return
@@ -269,7 +305,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         if(l==0) l = 1
 
         for(let i = 0; i < l; i++){
-            this.broadcast('hint', {index : this.state.Option.Hintarray[this.state.Option.Hintarray_opend] + 1, word : this.state.Option.Answers[this.state.Option.Answers_index].Original[this.state.Option.Hintarray[this.state.Option.Hintarray_opend]]})
+            this.broadcast('hint', {index : this.state.Option.Hintarray[this.state.Option.Hintarray_opend] + 1, word : this.state.Option.Answer.Original[this.state.Option.Hintarray[this.state.Option.Hintarray_opend]]})
             this.state.Option.Hintarray_opend += 1
             if(this.state.Option.Hintarray_l == this.state.Option.Hintarray_opend) break
         }
@@ -283,9 +319,10 @@ exports.ZaumRoom = class extends colyseus.Room {
             v.Iscorrect = false
             v.Iscooltime = false
         })
+        this.state.Option.corrector = 0
         this.broadcast('round_ended', {
             answer:
-                this.state.Option.Answers[this.state.Option.Answers_index].Original,
+            this.state.Option.Answer.Original,
         })
         this.clock.setTimeout(() => {
             this.roundready()

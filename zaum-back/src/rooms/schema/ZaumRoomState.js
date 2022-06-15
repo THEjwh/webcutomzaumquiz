@@ -14,11 +14,13 @@ schema.defineTypes(Player, {
 })
 
 class Zaums extends Schema {
-  constructor(w){
+  constructor(w = false){
     super();
-    this.Original = w.original
-    this.Zaum = w.zaum
-    this.Desc = w.desc
+    if(w){
+      this.Original = w.original
+      this.Zaum = w.zaum
+      this.Desc = w.desc
+    }
   }
 }
 schema.defineTypes(Zaums, {
@@ -32,14 +34,14 @@ class GameRules extends Schema {
   constructor(fcfs = false, advscore = false, name = '', desc = '' ){
     super();
     this.FCFS = fcfs
-    this.score_Advenced = advscore
+    this.score_adv = advscore
     this.name = name
     this.description = desc
   }
 }
 schema.defineTypes(GameRules, {
   FCFS: 'boolean',
-  score_Advenced: 'boolean',
+  score_adv: 'boolean',
   name : 'string',
   description: 'string',
 })
@@ -50,6 +52,9 @@ class GameOptions extends Schema {
     this.Rules = new ArraySchema()
     this.Answers = new ArraySchema()
     this.Hintarray = new ArraySchema()
+    this.Rule = new GameRules()
+    this.Answer = new Zaums()
+    this.corrector = 0
   }
 
   setter(v){
@@ -60,6 +65,7 @@ class GameOptions extends Schema {
     this.useCooltime = v.useCooltime
     this.coolTime = v.coolTime
     this.nowRule = v.nowRule
+    this.Rule = this.Rules[this.nowRule]
     this.Isdesc = v.useDesc
     this.Answers = new ArraySchema()
 
@@ -78,6 +84,7 @@ class GameOptions extends Schema {
 schema.defineTypes(GameOptions, {
   Rules: [GameRules],
   nowRule: 'number',
+  Rule: GameRules,
 
   MaxRound: 'number',
   MaxTime: 'number',
@@ -89,12 +96,15 @@ schema.defineTypes(GameOptions, {
   useCooltime : 'boolean',
   coolTime : 'number',
 
+  Answer: Zaums,
   Answers: [Zaums],
   Answers_index: 'number', 
   Hintarray : ['number'],
   Hintarray_l: 'number',
   Hintarray_opend: 'number',
   Isdesc : 'boolean',
+
+  corrector: 'number',
 })
 
 class ZaumState extends Schema {

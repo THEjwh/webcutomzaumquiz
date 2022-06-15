@@ -44,7 +44,7 @@ export default {
         Room.value = room
         console.log(Room.value)
         //router.replace('/lobby')
-        router.replace({name:'lobby'})
+        router.replace({name:'lobby', params:{by:'ho'}})
       }).catch(e => {
         abc.value = "접속실패!"
       });
@@ -69,11 +69,11 @@ export default {
     }
 
     const test = () => {
-      router.replace({name: 'lobby'})
+      router.replace({name: 'lobby' , params:{by:'test'}})
     }
 
     const test2 = () => {
-      router.replace({name: 'game'})
+      router.replace({name: 'game' , params:{by:'test'}})
     }
 
     return {
