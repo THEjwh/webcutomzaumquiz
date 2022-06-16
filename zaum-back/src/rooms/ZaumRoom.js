@@ -8,7 +8,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         this.state.NeedAdmin = true
         this.maxClients = 10
 
-        this.setPrivate(true)
+        //this.setPrivate(true)
 
         this.onMessage('join_completed', (client, message) => {
             if(message){
