@@ -10,7 +10,7 @@ export default {
     const col = inject('$coly');
     const client = inject('client');
     const Room = inject("room")
-    client.value =  new col.Client("ws://localhost:2567")
+    client.value =  new col.Client("ws://zaumback.herokuapp.com/")
     //let cl = new col.client("ws://localhost:2567")
     const abc = ref("")
     const nickname = ref('')
@@ -122,8 +122,6 @@ export default {
     <div v-if="kicked == true" class="p-4 mb-4 w-3/5 mx-auto text-md text-red-700 bg-red-100 rounded-lg text-center" role="alert">
       <span class="font-bold">방에서 강퇴당하셨습니다!</span> 
     </div>
-    <button @click="test" class="bg-cyan-500 mx-auto p-3 rounded-lg text-xl font-extrabold">test</button>
-    <button @click="test2" class="bg-cyan-500 mx-auto p-3 rounded-lg text-xl font-extrabold">test2</button>
   </div>
 </template>
 

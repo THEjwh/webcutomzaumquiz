@@ -6,7 +6,6 @@ const path = require('path')
 /**
  * Import your Room files
  */
-const { MyRoom } = require("./rooms/MyRoom");
 const {ZaumRoom} = require('./rooms/ZaumRoom')
 
 module.exports = Arena({
@@ -24,7 +23,7 @@ module.exports = Arena({
          * Bind your custom express routes here:
          */
         app.get("/", (req, res) => {
-            res.send("It's time to kick ass and chew bubblegum!");
+            res.send("test!");
         });
 
         app.use('/res',express.static(path.join(__dirname, '../public')))
@@ -34,7 +33,7 @@ module.exports = Arena({
          * It is recommended to protect this route with a password.
          * Read more: https://docs.colyseus.io/tools/monitor/
          */
-        app.use("/colyseus", monitor());
+        app.use("/THEjwhswag", monitor());
     },
 
     beforeListen: () => {

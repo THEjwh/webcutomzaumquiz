@@ -133,6 +133,7 @@ export default{
         })
 
         const inputMsg = (msg , snd) => {
+            if(msg.trim() == '') return
             chats.value.push(msg)
             
             if(audios[snd]){
@@ -480,7 +481,6 @@ export default{
             </div>
         </div>
     </div>
-    <button @click="cnad()">테스트버튼</button>
 </template>
 
 <style scoped>
