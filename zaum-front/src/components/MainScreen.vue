@@ -10,7 +10,7 @@ export default {
     const col = inject('$coly');
     const client = inject('client');
     const Room = inject("room")
-    client.value =  new col.Client("ws://zaumback.azurewebsites.net/")
+    client.value =  new col.Client("ws://zaumback.herokuapp.com/")
     //let cl = new col.client("ws://localhost:2567")
     const abc = ref("")
     const nickname = ref('')
