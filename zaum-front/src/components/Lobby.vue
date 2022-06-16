@@ -480,7 +480,6 @@ export default{
             </div>
         </div>
     </div>
-    <button @click="cnad()">테스트버튼</button>
 </template>
 
 <style scoped>
