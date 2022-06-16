@@ -18,12 +18,15 @@ export default{
         const chat = ref('')
         const chatsquare = ref(null)
         const ImAdmin = ref(false)
-        const Seechat = ref(true)
+        const Seechat = ref(true) //true면 체팅창모드, false면 설정창 모드
         const words = ref('')
 
-        const audio = new Audio('http://localhost:2567/res/sound/chat.mp3')
+        const audios = {
+            chat : new Audio('/src/assets/sound/chat.mp3'),
+            alarm : new Audio('/src/assets/sound/alarm.mp3'),
+            confirm : new Audio('/src/assets/sound/confirm.mp3'),
+        };
         
-
         const Person = ref(10)
         const Rounds = ref(2)
         const Times = ref(60)
@@ -47,27 +50,54 @@ export default{
                 Room.value.removeAllListeners()
 
                 Room.value.onMessage('alarm', (message) => {
-                    inputMsg(message)
+                    inputMsg(message, 'alarm')
                 })
                 Room.value.onMessage('Options', (message) => {
+
+                    //Word : this.state.Option.Answers,
                     //console.log(message)
                     gameMods.value = message.Rules
                     selected_Mod.value = 0
                     Person.value = message.Max
+                    Isdesc.value = message.Desc 
+                    Iscooltime.value = message.Cool
+                    Ishint.value = message.Hint
+                    Isinvade.value = message.Invade
+                    cooltime.value = message.Cooltime
+                    selected_Mod.value = message.Rule
+                    Rounds.value = message.Round
+                    Times.value = message.Time
+                    console.log(cooltime.value)
+
+                    message.Word.forEach((ele, index) => {
+                        words.value += ele.Original
+                        if(ele.Desc != null){
+                            words.value += ('.' + ele.Desc)
+                        }
+                        if(index != message.Word.length - 1){
+                            words.value += ','
+                        }
+                    })
                 })
                 Room.value.onMessage('players', (message) => {
                     users.value = message
                     if(users.value[Room.value.sessionId].Isadmin == true) {
+                        if(ImAdmin.value == false){ //방장이 아니었다가 방장이 된 경우
+                            inputMsg('당신은 방장입니다!', 'alarm')
+                            console.log(Room.value.sessionId)
+                            Room.value.send('i_am_admin') // 현재 서버의 옵션 데이터 요청
+                        }
+
                         ImAdmin.value = true
+                        
                     } else ImAdmin.value = false
 
-                    if(ImAdmin.value == Seechat.value){
+                    if(ImAdmin.value == Seechat.value && ImAdmin.value == false){ //내가 어드민이 아닌데 옵션창을 보고있을경우 채팅창으로 전환
                         Seechat.value = true
-                        Room.value.send('i_am_admin')
                     }
                 })
                 Room.value.onMessage('chat_message', (message) => {
-                    inputMsg(message)
+                    inputMsg(message, 'chat')
                 })
 
                 Room.value.onMessage('you_kicked', (message) => {
@@ -77,6 +107,7 @@ export default{
                 Room.value.onMessage('start_ok', (message) => {
                     started.value = true
                     changeSeechat(true)
+                    audios['confirm'].play()
                 })
 
                 Room.value.onMessage('game_started', (msg) => {
@@ -101,12 +132,12 @@ export default{
             //chatsquare.value.scrollTop = chatsquare.value.scrollHeight;
         })
 
-        const inputMsg = (msg) => {
+        const inputMsg = (msg , snd) => {
             chats.value.push(msg)
             
-            if(audio){
-                audio.currentTime = 0
-                audio.play()
+            if(audios[snd]){
+                audios[snd].currentTime = 0
+                audios[snd].play()
             }
             nextTick(() => {
                 if(chatsquare.value) {
@@ -153,7 +184,7 @@ export default{
         const copyclick = async () => {
             if(Room.value) {
                 try{
-                    await toClipboard(Room.value.sessionId)
+                    await toClipboard(Room.value.id)
                     codetext.value = "복사됨!"
                 } catch (e) {
 
@@ -187,7 +218,7 @@ export default{
                 a.forEach((ele) => {
                     let t = ele.split('.')
                     if(t[0].trim() != ''){
-                        c.push({origianl:t[0].trim(), zaum: cho_hangul(t[0]).trim(), desc: t[1].trim()})
+                        c.push({original:t[0].trim(), zaum: cho_hangul(t[0]).trim(), desc: t[1].trim()})
                     }
                 })
             }else {

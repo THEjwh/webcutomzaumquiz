@@ -55,6 +55,16 @@ class GameOptions extends Schema {
     this.Rule = new GameRules()
     this.Answer = new Zaums()
     this.corrector = 0
+    this.MaxRound = 2
+    this.MaxTime = 60
+    this.useHint = true
+    this.useInvade = true
+    this.useCooltime = false
+    this.coolTime = 1
+    this.nowRule = 0
+    this.Isdesc = false
+    this.Rule = this.Rules[this.nowRule]
+    
   }
 
   setter(v){
@@ -71,10 +81,9 @@ class GameOptions extends Schema {
 
     for(let i = 0; i < v.words.length; i++){
       this.Answers.push(new Zaums(v.words[i]))
-      console.log(this.Answers[i].Zaum)
-      
+      //console.log(this.Answers[i].Zaum)
     }
-    console.log(this.Answers.length)
+    //console.log(this.Answers.length)
     //v.words.forEach(ele => {
     //  this.Answers.push(new Zaums(ele.origianl, ele.zaum, ele.desc))
    // });
@@ -118,8 +127,8 @@ class ZaumState extends Schema {
     this.Option = new GameOptions()
 
     //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...
-    this.Option.Rules.push(new GameRules(false,false, '갯수경쟁', '맞춘 사람은 1점을 얻습니다.'))
-    this.Option.Rules.push(new GameRules(true,false, '승자독식', '1등만 점수를 1점 얻고 바로 라운드가 끝납니다.'))
+    this.Option.Rules.push(new GameRules(false,false, '갯수 겨루기', '맞춘 사람은 1점을 얻습니다.'))
+    this.Option.Rules.push(new GameRules(true,false, '승자 독식', '1등만 점수를 1점 얻고 바로 라운드가 끝납니다.'))
     this.Option.Rules.push(new GameRules(false,true, '스피드런', '맞춘 등수와 남은 시간에 따라 보정된 점수를 얻습니다.'))
     
   }

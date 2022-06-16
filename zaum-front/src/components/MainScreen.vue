@@ -40,31 +40,36 @@ export default {
     const goConnect = () => {
       console.log('trying...')
       client.value.joinOrCreate("zaum", {Nickname : nickname.value}).then(room => {
-        abc.value = "방에 접속됨!"
+        console.log('connect!')
         Room.value = room
         console.log(Room.value)
-        //router.replace('/lobby')
-        router.replace({name:'lobby', params:{by:'ho'}})
+        room.onMessage('go_to_lobby', (msg) => {
+          router.replace({name:'lobby', params:{by:'ho'}})
+        })
+        room.onMessage('go_to_game', (msg) => {
+          router.replace({name:'lobby', params:{by:'ho'}})
+        })
+        
       }).catch(e => {
-        abc.value = "접속실패!"
+        console.log(e)
       });
     }
     const thisConnect = () => {
+      console.log('trying...')
       client.value.joinById(toroomid.value, {Nickname : nickname.value}).then(room => {
-        abc.value = "방에 접속됨!"
-        room.onMessage('alarm', (message) => {
-          serverlog.value += message + '\n'
-        })
-
-        room.onMessage('client_number', (message) => {
-          players.value = message
-        })
+        console.log('connect!')
         roomid.value = room.id
         Room.value = room
         console.log(roomid.value)
         console.log(Room.value)
+        room.onMessage('go_to_lobby', (msg) => {
+          router.replace({name:'lobby', params:{by:'ho'}})
+        })
+        room.onMessage('go_to_game', (msg) => {
+          router.replace({name:'game', params:{by:'ho'}})
+        })
       }).catch(e => {
-        abc.value = "접속실패!"
+        console.log(e)
       });
     }
 

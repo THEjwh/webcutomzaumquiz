@@ -13,6 +13,7 @@ export default {
         const chats = ref(new Array())
         const chat = ref('')
         const chatsquare = ref(null)
+        const imcor = ref(false)
 
         const words = ref('wait...')
         const hint = ref(new Array())
@@ -29,17 +30,28 @@ export default {
         const users = ref(undefined)
         const users_r = ref(undefined)
 
+        const audios = {
+            chat : new Audio('/src/assets/sound/chat.mp3'),
+            alarm : new Audio('/src/assets/sound/alarm.mp3'),
+            cor : new Audio('/src/assets/sound/cor.mp3'),
+            round_s : new Audio('/src/assets/sound/round_start.mp3'),
+            round_e : new Audio('/src/assets/sound/round_end.mp3'),
+            game_e : new Audio('/src/assets/sound/game_end.mp3'),
+            hint : new Audio('/src/assets/sound/hint.mp3')
+        };
+
         onBeforeMount(() => {
             if (Room.value != undefined) {
                 Room.value.removeAllListeners()
                 Room.value.onMessage('alarm', (msg) => {
-                    inputMsg(msg,'alarm')
+                    
+                    inputMsg(msg,'alarm', 'alarm')
                 })
                 Room.value.onMessage('alarm_s', (msg) => {
-                    inputMsg(msg,'alarm_s')
+                    inputMsg(msg,'alarm_s', 'alarm')
                 })
                 Room.value.onMessage('alarm_c', (msg) => {
-                    inputMsg(msg,'alarm_c')
+                    inputMsg(msg,'alarm_c', 'cor')
                     Room.value.send('get_players')
                 })
                 Room.value.onMessage('players', (message) => {
@@ -62,49 +74,83 @@ export default {
                     maxtime.value = msg.maxtime
                     h_desc_use.value = msg.desc
                 })
+                Room.value.onMessage('game_option_now', (msg) => {
+                    words.value = msg.quest
+                    time.value = msg.t
+                    round.value = msg.r
+                })
                 Room.value.onMessage('round_start', (msg) => {
+
                     time.value = maxtime.value
                     round.value += 1
                     words.value = msg.quest
                     hint.value.length = 0
+
+                    audios['round_s'].currentTime = 0
+                    audios['round_s'].play()
                 })
                 Room.value.onMessage('clock_tick', (msg) => {
                     time.value -= 1
                 })
                 Room.value.onMessage('chat_message', (msg) => {
-                    inputMsg(msg,'msg')
+                    inputMsg(msg,'msg', 'chat')
                 })
                 Room.value.onMessage('chat_message_c', (msg) => {
-                    inputMsg(msg,'msg_c')
+                    if(imcor.value){
+                        inputMsg(msg,'msg_c', 'chat')
+                    }
                 })
                 Room.value.onMessage('hint', (msg)=> {
+                    audios['hint'].play()
                     hint.value.push(msg.index + '번째 글자:' + msg.word)
+                })
+                Room.value.onMessage('desc', (msg) => {
+                    audios['hint'].play()
+                    h_desc.value = msg
+                    h_desc_use.value = true
                 })
                 Room.value.onMessage('correct', (msg) => {
                     words.value = msg
+                    imcor.value = true
                 })
                 Room.value.onMessage('round_ended', (msg) => {
                     words.value = msg.answer
-                    inputMsg('라운드가 끝났습니다!','alarm')
+                    h_desc.value = ''
+                    h_desc_use.value = false
+                    imcor.value = false
+                    inputMsg('라운드가 끝났습니다!','round_e')
                     Room.value.send('get_players')
                 })
                 Room.value.onMessage('game_ended', (msg) => {
-                    inputMsg('게임이 종료되었습니다!','alarm')
+                    audios['chat'].currentTime = 0
+                    audios['chat'].play()
+                    inputMsg('게임이 종료되었습니다!','game_e')
                 })
-                Room.value.onMessage('goto_lobby', (msg) => {
-                    router.replace({ name: 'lobby', query:{r:true} })
+                Room.value.onMessage('go_to_lobby', (msg) => {
+                    router.replace({ name: 'lobby', params:{by:'gm'} })
                 })
                 if(route.params.by == 'lo'){
                     Room.value.send("join_game")
+                } else if(route.params.by == 'ho'){ //메인화면에서 바로 게임으로 왔다 = 게임 도중 난입
+                    Room.value.send('join_invade')
                 }
 
             }
         })
 
 
-        const inputMsg = (msg, tag) => {
+        const inputMsg = (msg, tag, snd = false) => {
             chats.value.push({msg : msg, tag : tag})
+
+
+            if(snd){
+                if(audios[snd]){
+                    audios[snd].currentTime = 0
+                    audios[snd].play()
+                }
+            }
             
+
 /*             if(audio){
                 audio.currentTime = 0
                 audio.play()

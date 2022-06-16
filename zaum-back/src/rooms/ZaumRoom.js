@@ -22,7 +22,16 @@ exports.ZaumRoom = class extends colyseus.Room {
 
         this.onMessage('i_am_admin', (client, message) => {
             client.send('Options', {
+                Word : this.state.Option.Answers,
                 Rules: this.state.Option.Rules,
+                Rule : this.state.Option.nowRule,
+                Desc : this.state.Option.Isdesc,
+                Round : this.state.Option.MaxRound,
+                Time : this.state.Option.MaxTime,
+                Hint : this.state.Option.useHint,
+                Invade : this.state.Option.useInvade,
+                Cool : this.state.Option.useCooltime,
+                Cooltime : this.state.Option.coolTime,
                 Max: this.maxClients,
             })
         })
@@ -53,6 +62,18 @@ exports.ZaumRoom = class extends colyseus.Room {
                 desc: this.state.Option.Isdesc,
             })
             if (this.state.IsRound) {
+                client.send('game_option_now', {
+                    quest : this.state.Option.Answer.Zaum,
+                    t : this.state.Option.nowTime,
+                    r : this.state.Option.nowRound
+                })
+
+                if(this.state.Option.Isdesc && t.state.Option.nowTime <= Math.floor(t.state.Option.MaxTime * 0.7)){
+                    client.send('desc', this.state.Option.Answer.Desc)
+                }
+                for (let i =  0; i < this.state.Option.Hintarray_opend; i++){
+                    client.send('hint', {index : this.state.Option.Hintarray[i] + 1, word : this.state.Option.Answer.Original[this.state.Option.Hintarray[i]]})
+                }
             } else {
             }
         })
@@ -75,6 +96,8 @@ exports.ZaumRoom = class extends colyseus.Room {
                         client.send('correct', this.state.Option.Answer.Original)
                         this.broadcast('alarm_c', this.state.players.get(client.sessionId).nickname + '님이 정답을 맞췄습니다!')
                         if(this.state.Option.Rule.FCFS){
+                            this.roundend()
+                        } else if(this.state.players.size <= this.state.Option.corrector){
                             this.roundend()
                         }
                     } else {
@@ -146,7 +169,7 @@ exports.ZaumRoom = class extends colyseus.Room {
             let a = new Player()
             if (options.Nickname != undefined && options.Nickname != '') {
                 a.nickname = options.Nickname
-            } else a.nickname = '무명_' + client.sessionId
+            } else a.nickname = client.sessionId
 
             a.score = 0
             a.Isadmin = false
@@ -157,6 +180,12 @@ exports.ZaumRoom = class extends colyseus.Room {
                 a.Isadmin = true
             }
             this.state.players.set(client.sessionId, a)
+        }
+
+        if(this.state.IsPlaying){
+            client.send('go_to_game')
+        }else{
+            client.send('go_to_lobby')
         }
     }
 
@@ -272,11 +301,22 @@ exports.ZaumRoom = class extends colyseus.Room {
 
             if(this.state.Option.useHint){
                 if (t.state.Option.nowTime == Math.floor(t.state.Option.MaxTime * 0.7)) {
-                    t.sendhint()
+                    if(t.state.Option.Isdesc){
+                        t.senddesc()
+                    }
+                    else{
+                        t.sendhint()
+                    }
                 } else if (
                     t.state.Option.nowTime == Math.floor(t.state.Option.MaxTime * 0.4)
                 ) {
-                    t.sendhint()
+                    if(t.state.Option.Isdesc){
+                        t.sendhint()
+                        t.sendhint()
+                    }
+                    else{
+                        t.sendhint()
+                    }
                 } else if (
                     t.state.Option.nowTime == Math.floor(t.state.Option.MaxTime * 0.1)
                 ) {
@@ -284,6 +324,10 @@ exports.ZaumRoom = class extends colyseus.Room {
                 }
             }
         }
+    }
+
+    senddesc(){
+        this.broadcast('desc', this.state.Option.Answer.Desc)
     }
 
     sendhint(m = false) {
@@ -340,7 +384,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         this.state.IsEnding = true
         this.broadcast('game_ended')
         this.clock.setInterval(() => {
-            this.broadcast('goto_lobby')
+            this.broadcast('go_to_lobby')
             this.clock.clear()
             this.clock.stop()
             if (!this.state.Option.useInvade) {
