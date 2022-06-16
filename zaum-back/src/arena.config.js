@@ -23,7 +23,7 @@ module.exports = Arena({
          * Bind your custom express routes here:
          */
         app.get("/", (req, res) => {
-            res.send("It's time to kick ass and chew bubblegum!");
+            res.send("test!");
         });
 
         app.use('/res',express.static(path.join(__dirname, '../public')))
