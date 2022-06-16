@@ -6,7 +6,6 @@ const path = require('path')
 /**
  * Import your Room files
  */
-const { MyRoom } = require("./rooms/MyRoom");
 const {ZaumRoom} = require('./rooms/ZaumRoom')
 
 module.exports = Arena({

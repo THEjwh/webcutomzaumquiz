@@ -9,7 +9,6 @@ const routes = [
     path: '/',
     name: 'home',
     component: HomeView,
-    //component: gameView,
   },
   {
     path: '/home',
