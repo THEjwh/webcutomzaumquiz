@@ -2,6 +2,7 @@ const schema = require('@colyseus/schema');
 const Schema = schema.Schema;
 const MapSchema = schema.MapSchema;
 const ArraySchema = schema.ArraySchema;
+const SetSchema = schema.SetSchema;
 
 class Player extends Schema {
 }
@@ -125,6 +126,8 @@ class ZaumState extends Schema {
     this.IsRound = false;
     this.IsEnding = false;
     this.Option = new GameOptions()
+    this.IPs = new SetSchema()
+    this.playersIP = new MapSchema()
 
     //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...
     this.Option.Rules.push(new GameRules(false,false, '갯수 겨루기', '맞춘 사람은 1점을 얻습니다.'))
@@ -135,6 +138,8 @@ class ZaumState extends Schema {
 }
 
 schema.defineTypes(ZaumState, {
+    IPs: {set : 'string'},
+    playersIP: {map: 'string'},
     players: {map: Player},
     NeedAdmin: 'boolean',
     IsPlaying: 'boolean',
