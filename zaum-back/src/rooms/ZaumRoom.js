@@ -8,7 +8,7 @@ exports.ZaumRoom = class extends colyseus.Room {
         this.state.NeedAdmin = true
         this.maxClients = 10
 
-        this.setPrivate(true)
+        //this.setPrivate(true)
 
         this.onMessage('join_completed', (client, message) => {
             if(message){
@@ -160,6 +160,18 @@ exports.ZaumRoom = class extends colyseus.Room {
     }
 
     // Authorize client based on provided options before WebSocket handshake is complete
+    onAuth(client, options, request) {
+        const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
+        if(this.state.IPs.has(ip)){
+            return false
+        }
+        else{
+            this.state.IPs.add(ip)
+            this.state.playersIP.set(client.sessionId, ip)
+        }
+        return true;
+    }
+    
 
     // When client successfully join the room
     onJoin(client, options) {
@@ -208,6 +220,11 @@ exports.ZaumRoom = class extends colyseus.Room {
                 this.state.players.entries().next().value[1].Isadmin = true
             }
             this.broadcast('players', this.state.players)
+        }
+
+        if(this.state.playersIP.get(client.sessionId)){
+            this.state.IPs.delete(this.state.playersIP.get(client.sessionId))
+            this.state.playersIP.delete(client.sessionId)
         }
     }
 
