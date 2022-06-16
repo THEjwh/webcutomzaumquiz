@@ -140,6 +140,7 @@ export default {
 
 
         const inputMsg = (msg, tag, snd = false) => {
+            if(msg.trim() == '') return
             chats.value.push({msg : msg, tag : tag})
 
 

@@ -133,6 +133,7 @@ export default{
         })
 
         const inputMsg = (msg , snd) => {
+            if(msg.trim() == '') return
             chats.value.push(msg)
             
             if(audios[snd]){
