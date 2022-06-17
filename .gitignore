@@ -1,4 +1,4 @@
 .vscode/settings.json
 zaum-back/.deployment
-zaum-back/src/arena.config.js
+zaum-back/src/config
 zaum-front/.github
