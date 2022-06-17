@@ -114,7 +114,7 @@ export default {
 
   <div class="container mx-auto w-3/5 border-2 m-4 bg-slate-300 rounded-lg my-10">
     <p class="align-middle text-center font-sans font-semibold antialiased text-6xl text-black m-20">
-      대충 사이트 alpha 0.02
+      대충 사이트 dev
     </p>
     <div class=" mx-auto grid grid-cols-2 gap-10 m-20">
       <div class="mx-auto text-2xl bg-slate-100 p-2 px-5 rounded-lg" >
