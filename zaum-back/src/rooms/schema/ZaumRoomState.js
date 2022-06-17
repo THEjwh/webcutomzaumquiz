@@ -139,6 +139,7 @@ class ZaumState extends Schema {
 
 schema.defineTypes(ZaumState, {
     IPs: {set : 'string'},
+    kickedIPs : {set : 'string'},
     playersIP: {map: 'string'},
     players: {map: Player},
     NeedAdmin: 'boolean',

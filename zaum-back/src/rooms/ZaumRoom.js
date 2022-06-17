@@ -4,9 +4,13 @@ const { ZaumState, Player, Zaums } = require('./schema/ZaumRoomState')
 exports.ZaumRoom = class extends colyseus.Room {
     // When room is initialized
     onCreate(options) {
+        this.clock.start()
         this.setState(new ZaumState())
         this.state.NeedAdmin = true
         this.maxClients = 10
+        this.inter = this.clock.setInterval(() => { //로비에서 장시간 무응답시 방터뜨리기용
+            this.disconnect()
+        }, 1000 *  60 * 15)
 
         //this.setPrivate(true)
 
@@ -17,6 +21,7 @@ exports.ZaumRoom = class extends colyseus.Room {
                     this.state.players.get(client.sessionId).nickname + '님이 접속했습니다!'
                 )
             }
+            this.inter.resume()
             this.broadcast('players', this.state.players)
         })
 
@@ -118,6 +123,8 @@ exports.ZaumRoom = class extends colyseus.Room {
                     'chat_message',
                     this.state.players.get(client.sessionId).nickname + ': ' + message.msg
                 )
+
+                if(!this.state.Option.IsPlaying) this.inter.resume()
             }
         })
 
@@ -132,7 +139,6 @@ exports.ZaumRoom = class extends colyseus.Room {
                 this.broadcast('start_ok')
 
                 this.clock.clear()
-                this.clock.start()
                 this.broadcast('alarm', '5초후 게임이 시작됩니다!')
                 this.clock.setTimeout(() => {
                     this.gamestart()
@@ -403,10 +409,12 @@ exports.ZaumRoom = class extends colyseus.Room {
         this.clock.setInterval(() => {
             this.broadcast('go_to_lobby')
             this.clock.clear()
-            this.clock.stop()
             if (!this.state.Option.useInvade) {
                 this.unlock()
             }
+            this.inter = this.clock.setInterval(() => { //게임끝나면다시
+                this.disconnect()
+            }, 1000 *  60 * 15)
             console.log('다시로비로')
         }, 5000)
     }
