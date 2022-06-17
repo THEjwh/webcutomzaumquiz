@@ -173,9 +173,7 @@ export default {
         }
 
         const getPlayer = () => {
-            console.log('겟플리리어호출')
             if(users.value == undefined) return new Array()
-            console.log(users.value)
             return Object.entries(users.value)
         }
 

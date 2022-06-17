@@ -50,7 +50,6 @@ export default{
        
 
         onBeforeMount(() => {
-            console.log("lobby BEFOREMOUNT")
             if(Room.value != undefined){
                 Room.value.removeAllListeners()
 
@@ -72,7 +71,6 @@ export default{
                     selected_Mod.value = message.Rule
                     Rounds.value = message.Round
                     Times.value = message.Time
-                    console.log(cooltime.value)
 
                     message.Word.forEach((ele, index) => {
                         words.value += ele.Original
@@ -89,7 +87,6 @@ export default{
                     if(users.value[Room.value.sessionId].Isadmin == true) {
                         if(ImAdmin.value == false){ //방장이 아니었다가 방장이 된 경우
                             inputMsg('당신은 방장입니다!', 'alarm')
-                            console.log(Room.value.sessionId)
                             Room.value.send('i_am_admin') // 현재 서버의 옵션 데이터 요청
                         }
 
@@ -117,6 +114,10 @@ export default{
 
                 Room.value.onMessage('game_started', (msg) => {
                     router.replace({name:'game', params:{by:'lo'}})
+                })
+
+                Room.value.onMessage('time_out', (msg) => {
+                    router.replace({name:'home', query:{by:'time'}})
                 })
                 
                 if(route.params.by == 'ho'){
@@ -156,7 +157,6 @@ export default{
         }
 
         const sendChat = () => {
-            console.log("sended!")
             Room.value.send("send_message", {msg: chat.value})
             chat.value = ""
         }
