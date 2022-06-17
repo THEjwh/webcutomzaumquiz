@@ -33,7 +33,7 @@ module.exports = Arena({
          * It is recommended to protect this route with a password.
          * Read more: https://docs.colyseus.io/tools/monitor/
          */
-        app.use("/THEjwh", monitor());
+        app.use("/monitor", monitor());
     },
 
     beforeListen: () => {
