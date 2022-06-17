@@ -23,7 +23,7 @@ export default{
         const words = ref('')
 
         const getaudio = (url, name) => {
-            return new Audio('http://' + url + '/res/sound/' + name + '.mp3')
+            return new Audio('https://' + url + '/res/sound/' + name + '.mp3')
         }
 
         const audios = {
