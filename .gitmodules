@@ -1,0 +1,3 @@
+[submodule "zaum-front"]
+	path = zaum-front
+	url = https://github.com/THEjwh/zaumquiz_front.git
