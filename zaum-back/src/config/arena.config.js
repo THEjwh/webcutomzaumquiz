@@ -6,7 +6,7 @@ const path = require('path')
 /**
  * Import your Room files
  */
-const {ZaumRoom} = require('./rooms/ZaumRoom')
+const {ZaumRoom} = require('../rooms/ZaumRoom')
 
 module.exports = Arena({
     getId: () => "Your Colyseus App",
