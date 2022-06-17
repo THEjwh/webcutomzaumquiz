@@ -6,7 +6,7 @@ export default {
     setup() {
         const client = ref();
         const room = ref(undefined);
-        const url = ref("ws://localhost:2567")
+        const url = ref("localhost:2567")
         provide("client", client);
         provide("room", room);
         provide('url', url)

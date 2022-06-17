@@ -11,7 +11,7 @@ export default {
     const client = inject('client');
     const Room = inject("room")
     const url = inject('url')
-    client.value =  new col.Client(url.value)
+    client.value =  new col.Client('ws://' + url.value)
     const abc = ref("")
     const nickname = ref('')
     const toroomid = ref('')

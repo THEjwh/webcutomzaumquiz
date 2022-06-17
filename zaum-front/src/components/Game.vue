@@ -7,6 +7,7 @@ export default {
         const col = inject('$coly');
         const client = inject('client');
         const Room = inject("room")
+        const url = inject('url')
         const router = useRouter()
         const route = useRoute()
 
@@ -30,14 +31,18 @@ export default {
         const users = ref(undefined)
         const users_r = ref(undefined)
 
+        const getaudio = (url, name) => {
+            return new Audio('http://' + url + '/res/sound/' + name + '.mp3')
+        }
+
         const audios = {
-            chat : new Audio('/src/assets/sound/chat.mp3'),
-            alarm : new Audio('/src/assets/sound/alarm.mp3'),
-            cor : new Audio('/src/assets/sound/cor.mp3'),
-            round_s : new Audio('/src/assets/sound/round_start.mp3'),
-            round_e : new Audio('/src/assets/sound/round_end.mp3'),
-            game_e : new Audio('/src/assets/sound/game_end.mp3'),
-            hint : new Audio('/src/assets/sound/hint.mp3')
+            chat : getaudio(url.value, 'chat'),
+            alarm : getaudio(url.value, 'alarm'),
+            cor : getaudio(url.value, 'cor'),
+            round_s : getaudio(url.value, 'round_start'),
+            round_e : getaudio(url.value, 'round_end'),
+            game_e : getaudio(url.value ,'game_end'),
+            hint : getaudio(url.value, 'hint')
         };
 
         onBeforeMount(() => {
@@ -118,12 +123,13 @@ export default {
                     h_desc.value = ''
                     h_desc_use.value = false
                     imcor.value = false
-                    inputMsg('라운드가 끝났습니다!','round_e')
+                    audios['round_e'].currentTime = 0
+                    audios['round_e'].play()
+                    inputMsg('라운드가 끝났습니다!','round_e','round_e')
                     Room.value.send('get_players')
                 })
                 Room.value.onMessage('game_ended', (msg) => {
-                    audios['chat'].currentTime = 0
-                    audios['chat'].play()
+                    audios['game_e'].play()
                     inputMsg('게임이 종료되었습니다!','game_e')
                 })
                 Room.value.onMessage('go_to_lobby', (msg) => {

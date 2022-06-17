@@ -127,6 +127,7 @@ class ZaumState extends Schema {
     this.IsEnding = false;
     this.Option = new GameOptions()
     this.IPs = new SetSchema()
+    this.kickedIPs = new SetSchema()
     this.playersIP = new MapSchema()
 
     //룰을 Mysql같은거 써서 좀 이쁘게 등록하고싶은데...

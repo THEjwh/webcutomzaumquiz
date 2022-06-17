@@ -9,6 +9,7 @@ export default{
         const col = inject('$coly');
         const client = inject('client');
         const Room = inject("room")
+        const url = inject('url')
         const router = useRouter()
         const route = useRoute()
         
@@ -21,10 +22,14 @@ export default{
         const Seechat = ref(true) //true면 체팅창모드, false면 설정창 모드
         const words = ref('')
 
+        const getaudio = (url, name) => {
+            return new Audio('http://' + url + '/res/sound/' + name + '.mp3')
+        }
+
         const audios = {
-            chat : new Audio('/src/assets/sound/chat.mp3'),
-            alarm : new Audio('/src/assets/sound/alarm.mp3'),
-            confirm : new Audio('/src/assets/sound/confirm.mp3'),
+            chat : getaudio(url.value, 'chat'),
+            alarm : getaudio(url.value, 'alarm'),
+            confirm : getaudio(url.value, 'confirm'),
         };
         
         const Person = ref(10)

@@ -1,4 +1,5 @@
 const colyseus = require('colyseus')
+const { get } = require('http')
 const { ZaumState, Player, Zaums } = require('./schema/ZaumRoomState')
 
 exports.ZaumRoom = class extends colyseus.Room {
@@ -158,6 +159,7 @@ exports.ZaumRoom = class extends colyseus.Room {
             if (this.state.players.get(message.sessionId) != undefined) {
                 const a = this.clients.find((ele) => {
                     if (ele.sessionId == message.sessionId) {
+                        this.state.kickedIPs.add(this.state.playersIP.get(ele.sessionId))
                         ele.send('you_kicked', {})
                     }
                 })
@@ -168,7 +170,7 @@ exports.ZaumRoom = class extends colyseus.Room {
     // Authorize client based on provided options before WebSocket handshake is complete
     onAuth(client, options, request) {
         const ip = request.headers['x-forwarded-for'] || request.connection.remoteAddress;
-        if(this.state.IPs.has(ip)){
+        if(this.state.IPs.has(ip) || this.state.kickedIPs.has(ip)){
             return false
         }
         else{
@@ -264,11 +266,12 @@ exports.ZaumRoom = class extends colyseus.Room {
         }
         console.log('다음 라운드 준비중')
         this.broadcast('alarm', '곧 다음 라운드가 시작됩니다!')
-
+        console.log('문제의 길이= ' + this.state.Option.Answers.length)
         this.state.Option.Answers_index = Math.floor(
+            
             Math.random() * this.state.Option.Answers.length
         )
-
+        console.log('index = ' + this.state.Option.Answers_index  )
         this.state.Option.Answer = this.state.Option.Answers[this.state.Option.Answers_index]
 
         if (this.state.Option.useHint) {
@@ -314,7 +317,6 @@ exports.ZaumRoom = class extends colyseus.Room {
 
     gamecount(t) {
         if (t.state.IsRound) {
-            console.log(t.state.Option.nowTime)
             t.broadcast('clock_tick')
             t.state.Option.nowTime -= 1
             if (t.state.Option.nowTime <= 0) {
@@ -357,8 +359,6 @@ exports.ZaumRoom = class extends colyseus.Room {
         if(this.state.Option.Hintarray_l == this.state.Option.Hintarray_opend) return
 
         console.log('sendhint 진입됨')
-        console.log(this.state.Option.Hintarray_l)
-        console.log(this.state.Option.Hintarray_opend)
 
 
         if (m) {
