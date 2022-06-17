@@ -11,7 +11,7 @@ export default {
         provide("room", room);
         provide('url', url)
     },
-    components: { Nav, Footer } //testasdf
+    components: { Nav, Footer }
 }
 </script>
 
