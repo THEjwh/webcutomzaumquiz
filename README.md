@@ -7,4 +7,4 @@
 ##
 사이트: https://proud-beach-069a10400.1.azurestaticapps.net/?by=normal
 
-아마두 지금은 안될겁니다
+아마두 지금은 될겁니다
