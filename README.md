@@ -5,6 +5,6 @@
 그리하여 웹개발 관련 경험이, 아니 그냥 제대로된 개발경험이 없다시피한 근본없는 본인의 유쾌한 반란이 시작된다...!
 <br>
 ##
-사이트: https://proud-beach-069a10400.1.azurestaticapps.net/?by=normal
+사이트: https://zachoq.kro.kr/
 
 아마두 지금은 될겁니다
